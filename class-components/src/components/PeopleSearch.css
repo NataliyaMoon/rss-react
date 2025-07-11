@@ -1,0 +1,23 @@
+.people-search {
+  padding: 20px 0;
+  font-family: Arial, sans-serif;
+}
+
+.people-search input {
+  margin-bottom: 10px;
+  padding: 5px;
+  width: 200px;
+  border-radius: 5px;
+}
+
+.people-search ul {
+  padding: 0 30px;
+}
+
+.people-search li {
+  margin: 5px 0;
+}
+
+.people-search button {
+  margin: 5px;
+}
