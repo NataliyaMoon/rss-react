@@ -4,7 +4,6 @@ import pluginPrettier from 'eslint-plugin-prettier';
 
 export default [
   js.configs.recommended,
-  pluginReact.configs.recommended,
   {
     files: ['**/*.js', '**/*.jsx'],
     languageOptions: {
@@ -22,6 +21,7 @@ export default [
         window: 'readonly',
         fetch: 'readonly',
         console: 'readonly',
+        localStorage: 'readonly',
       },
     },
     plugins: {
@@ -29,7 +29,16 @@ export default [
       prettier: pluginPrettier,
     },
     rules: {
-      'prettier/prettier': 'error',
+      'react/display-name': 'off',
+      'react/prop-types': 'off',
+      'prettier/prettier': [
+        'error',
+        {
+          singleQuote: true,
+          semi: true,
+          printWidth: 80,
+        },
+      ],
       'react/react-in-jsx-scope': 'off',
       'react/jsx-uses-react': 'off',
       'react/jsx-uses-vars': 'warn',
