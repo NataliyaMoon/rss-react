@@ -28,14 +28,14 @@ class ErrorBoundary extends React.Component<
 
   handleReset = () => {
     this.setState({ hasError: false });
-    this.props.onReset?.()
+    this.props.onReset?.();
   };
 
   render() {
     if (this.state.hasError) {
       return (
         <div>
-          <h2>Oooops! Something went wrong.</h2>
+          <h2>Ooops! Something went wrong.</h2>
           <button onClick={this.handleReset}>Try Again</button>
         </div>
       );
