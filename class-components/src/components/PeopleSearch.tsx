@@ -1,5 +1,7 @@
 import React from 'react';
 import './PeopleSearch.css';
+import ErrorBoundary from '../ErrorBoundary';
+import CrashComponent from '../CrashComponent';
 
 type Person = {
   name: string;
@@ -14,6 +16,7 @@ type PeopleSearchState = {
   count: number;
   loading: boolean;
   error: string;
+  forceError: boolean;
 };
 
 class PeopleSearch extends React.Component<unknown, PeopleSearchState> {
@@ -27,6 +30,7 @@ class PeopleSearch extends React.Component<unknown, PeopleSearchState> {
       count: 0,
       loading: false,
       error: '',
+      forceError: false,
     };
   }
 
@@ -85,8 +89,13 @@ class PeopleSearch extends React.Component<unknown, PeopleSearchState> {
     }
   };
 
+  handleResetError = () => {
+    this.setState({ forceError: false });
+  };
+
   render() {
-    const { people, query, page, count, loading, error } = this.state;
+    const { people, query, page, count, loading, error, forceError } =
+      this.state;
 
     return (
       <div className="people-search">
@@ -98,48 +107,58 @@ class PeopleSearch extends React.Component<unknown, PeopleSearchState> {
             onChange={this.handleInputChange}
           />
           <button onClick={this.handleSearch}>Search</button>
+          <button onClick={() => this.setState({ forceError: true })}>
+            Throw Error
+          </button>
         </section>
 
         <section className="results">
-          {loading && <p>Loading...</p>}
-          {error && <p className="error">Error: {error}</p>}
+          <ErrorBoundary onReset={this.handleResetError}>
+            {forceError && <CrashComponent />}
+            {!forceError && (
+              <>
+                {loading && <p>Loading...</p>}
+                {error && <p className="error">Error: {error}</p>}
 
-          {!loading && !error && (
-            <>
-              <table className="results-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Birth Year</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {people.map((person, index) => (
-                    <tr key={person.url}>
-                      <td>{(page - 1) * 10 + index + 1}</td>
-                      <td>{person.name}</td>
-                      <td>{person.birth_year}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="pagination">
-                <button onClick={this.handlePrev} disabled={page === 1}>
-                  Prev
-                </button>
-                <span>
-                  Page {page} of {Math.max(1, Math.ceil(count / 10))}
-                </span>
-                <button
-                  onClick={this.handleNext}
-                  disabled={page >= Math.ceil(count / 10)}
-                >
-                  Next
-                </button>
-              </div>
-            </>
-          )}
+                {!loading && !error && (
+                  <>
+                    <table className="results-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Birth Year</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {people.map((person, index) => (
+                          <tr key={person.url}>
+                            <td>{(page - 1) * 10 + index + 1}</td>
+                            <td>{person.name}</td>
+                            <td>{person.birth_year}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div className="pagination">
+                      <button onClick={this.handlePrev} disabled={page === 1}>
+                        Prev
+                      </button>
+                      <span>
+                        Page {page} of {Math.max(1, Math.ceil(count / 10))}
+                      </span>
+                      <button
+                        onClick={this.handleNext}
+                        disabled={page >= Math.ceil(count / 10)}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </ErrorBoundary>
         </section>
       </div>
     );

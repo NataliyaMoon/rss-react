@@ -2,6 +2,7 @@ import React from 'react';
 
 type ErrorBoundaryProps = {
   children: React.ReactNode;
+  onReset?: () => void;
 };
 
 type ErrorBoundaryState = {
@@ -25,14 +26,17 @@ class ErrorBoundary extends React.Component<
     console.error('ErrorBoundary caught an error:', error, info);
   }
 
+  handleReset = () => {
+    this.setState({ hasError: false });
+    this.props.onReset?.()
+  };
+
   render() {
     if (this.state.hasError) {
       return (
         <div>
           <h2>Oooops! Something went wrong.</h2>
-          <button onClick={() => this.setState({ hasError: false })}>
-            Try Again
-          </button>
+          <button onClick={this.handleReset}>Try Again</button>
         </div>
       );
     }
