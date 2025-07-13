@@ -1,11 +1,32 @@
 import js from '@eslint/js';
 import pluginReact from 'eslint-plugin-react';
 import pluginPrettier from 'eslint-plugin-prettier';
+import pluginTypeScript from '@typescript-eslint/eslint-plugin';
+import parserTypeScript from '@typescript-eslint/parser';
 
 export default [
   js.configs.recommended,
   {
-    files: ['**/*.js', '**/*.jsx'],
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: parserTypeScript,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        project: './tsconfig.json',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': pluginTypeScript,
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    },
+  },
+
+  {
+    files: ['**/*.js', '**/*.jsx', '**/*.tsx'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
