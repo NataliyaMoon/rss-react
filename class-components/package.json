@@ -17,7 +17,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint 'src/**/*.{js,jsx,ts,tsx}' 'eslint.config.js'",
-    "format:fix": "prettier --write 'src/**/*.{js,jsx,css}'",
+    "format:fix": "prettier --write 'src/**/*.{js,jsx,ts,tsx,css,html,json,md}'",
     "prepare": "husky install"
   },
   "browserslist": {
@@ -33,7 +33,7 @@
     ]
   },
   "lint-staged": {
-    "src/**/*.{js,jsx}": [
+   "src/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix",
       "prettier --write"
     ]
