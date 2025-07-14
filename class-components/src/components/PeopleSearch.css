@@ -1,0 +1,30 @@
+.people-search {
+  padding: 1rem;
+  font-family: sans-serif;
+}
+
+.search-bar {
+  margin-bottom: 1rem;
+}
+
+.search-bar input {
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.r.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.results-table th {
+  background-color: #f4f4f4;
+}

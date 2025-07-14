@@ -1,0 +1,16 @@
+* {
+  background-color: rgb(255, 220, 255);
+}
+
+main {
+  margin: 30px;
+  padding: 10px;
+}
+
+button {
+  background-color: violet;
+  border-radius: 5px;
+  width: 100px;
+  height: 30px;
+  margin: 10px;
+}
