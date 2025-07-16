@@ -6,6 +6,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import reactCompiler from 'eslint-plugin-react-compiler';
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
 import parser from '@typescript-eslint/parser';
+import vitest from 'eslint-plugin-vitest';
 
 export default [
   {
@@ -16,14 +17,14 @@ export default [
       parser,
       globals: {
         ...globals.browser,
-        ...globals.node,
-      },
+        ...globals.node
+      }
     },
     plugins: {
       react,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      'react-compiler': reactCompiler,
+      'react-compiler': reactCompiler
     },
     rules: {
       ...js.configs.recommended.rules,
@@ -33,16 +34,25 @@ export default [
       'react-refresh/only-export-components': [
         'warn',
         {
-          allowConstantExport: true,
-        },
+          allowConstantExport: true
+        }
       ],
-      'react-compiler/react-compiler': 'error',
+      'react-compiler/react-compiler': 'error'
     },
     settings: {
       react: {
-        version: 'detect',
-      },
-    },
+        version: 'detect'
+      }
+    }
   },
-  prettierRecommended,
+  {
+    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+    plugins: {
+      vitest
+    },
+    languageOptions: {
+      globals: vitest.environments['vitest/globals'].globals
+    }
+  },
+  prettierRecommended
 ];
