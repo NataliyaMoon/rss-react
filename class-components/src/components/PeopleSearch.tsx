@@ -1,7 +1,7 @@
 import React from 'react';
 import './PeopleSearch.css';
-import ErrorBoundary from '../ErrorBoundary';
-import CrashComponent from '../CrashComponent';
+import ErrorBoundary from './ErrorBoundary';
+import CrashComponent from './CrashComponent';
 
 type Person = {
   name: string;

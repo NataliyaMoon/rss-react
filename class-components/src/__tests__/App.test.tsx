@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from './App';
+import App from '../App';
 import { vi, describe, it, expect } from 'vitest';
 
-vi.mock('./components/PeopleSearch', () => ({
+vi.mock('../components/PeopleSearch', () => ({
   default: () => <div data-testid="people-search">PeopleSearch mock</div>,
 }));
 

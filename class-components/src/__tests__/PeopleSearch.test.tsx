@@ -1,13 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import PeopleSearch from './PeopleSearch';
+import PeopleSearch from '../components/PeopleSearch';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-vi.mock('../ErrorBoundary', () => ({
+vi.mock('../components/ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
-vi.mock('../CrashComponent', () => ({
+vi.mock('../components/CrashComponent', () => ({
   default: () => <div data-testid="crash">CrashComponent</div>
 }));
 

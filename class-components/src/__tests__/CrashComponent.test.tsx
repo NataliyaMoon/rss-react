@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import CrashComponent from './CrashComponent';
+import CrashComponent from '../components/CrashComponent';
 
 describe('CrashComponent', () => {
   it('crashes on mount', () => {
