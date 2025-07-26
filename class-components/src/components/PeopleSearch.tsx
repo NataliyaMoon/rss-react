@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import './PeopleSearch.css';
 import ErrorBoundary from './ErrorBoundary';
 import CrashComponent from './CrashComponent';
@@ -9,38 +9,22 @@ type Person = {
   url: string;
 };
 
-type PeopleSearchState = {
-  query: string;
-  people: Person[];
-  page: number;
-  count: number;
-  loading: boolean;
-  error: string;
-  forceError: boolean;
-};
+function PeopleSearch() {
+  const [query, setQuery] = useState(() => localStorage.getItem('peopleSearchQuery') || '');
+  const [people, setPeople] = useState<Person[]>([]);
+  const [page, setPage] = useState(1);
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [forceError, setForceError] = useState(false);
 
-class PeopleSearch extends React.Component<unknown, PeopleSearchState> {
-  constructor(props: unknown) {
-    super(props);
-    const savedQuery = localStorage.getItem('peopleSearchQuery') || '';
-    this.state = {
-      query: savedQuery,
-      people: [],
-      page: 1,
-      count: 0,
-      loading: false,
-      error: '',
-      forceError: false,
-    };
-  }
+  useEffect(() => {
+    fetchPeople();
+  }, [page]);
 
-  componentDidMount() {
-    this.fetchPeople();
-  }
-
-  fetchPeople = () => {
-    const { query, page } = this.state;
-    this.setState({ loading: true, error: '' });
+  const fetchPeople = () => {
+    setLoading(true);
+    setError('');
 
     const baseUrl = 'https://swapi.py4e.com/api/people/';
     const url = `${baseUrl}?search=${encodeURIComponent(query.trim())}&page=${page}`;
@@ -53,116 +37,109 @@ class PeopleSearch extends React.Component<unknown, PeopleSearchState> {
         return res.json();
       })
       .then((data: { results: Person[]; count: number }) => {
-        this.setState({
-          people: data.results || [],
-          count: data.count || 0,
-          loading: false,
-        });
+        setPeople(data.results || []);
+        setCount(data.count || 0);
+        setLoading(false);
       })
-      .catch((error: unknown) => {
-        const message =
-          error instanceof Error ? error.message : 'Something went wrong.';
-        this.setState({ loading: false, error: message });
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : 'Something went wrong.';
+        setError(message);
+        setLoading(false);
       });
   };
 
-  handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ query: e.target.value });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
   };
 
-  handleSearch = () => {
-    const trimmed = this.state.query.trim();
+  const handleSearch = () => {
+    const trimmed = query.trim();
     localStorage.setItem('peopleSearchQuery', trimmed);
-    this.setState({ page: 1, query: trimmed }, this.fetchPeople);
+    setPage(1);
+    setQuery(trimmed);
+    setTimeout(fetchPeople, 0);
   };
 
-  handlePrev = () => {
-    if (this.state.page > 1) {
-      this.setState({ page: this.state.page - 1 }, this.fetchPeople);
+  const handlePrev = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
     }
   };
 
-  handleNext = () => {
-    const maxPage = Math.ceil(this.state.count / 10);
-    if (this.state.page < maxPage) {
-      this.setState({ page: this.state.page + 1 }, this.fetchPeople);
+  const handleNext = () => {
+    const maxPage = Math.ceil(count / 10);
+    if (page < maxPage) {
+      setPage((prev) => prev + 1);
     }
   };
 
-  handleResetError = () => {
-    this.setState({ forceError: false });
+  const handleResetError = () => {
+    setForceError(false);
   };
 
-  render() {
-    const { people, query, page, count, loading, error, forceError } =
-      this.state;
+  return (
+    <div className="people-search">
+      <section className="search-bar">
+        <input
+          type="text"
+          placeholder="Search people..."
+          value={query}
+          onChange={handleInputChange}
+        />
+        <button onClick={handleSearch}>Search</button>
+        <button onClick={() => setForceError(true)}>Throw Error</button>
+      </section>
 
-    return (
-      <div className="people-search">
-        <section className="search-bar">
-          <input
-            type="text"
-            placeholder="Search people..."
-            value={query}
-            onChange={this.handleInputChange}
-          />
-          <button onClick={this.handleSearch}>Search</button>
-          <button onClick={() => this.setState({ forceError: true })}>
-            Throw Error
-          </button>
-        </section>
+      <section className="results">
+        <ErrorBoundary onReset={handleResetError}>
+          {forceError && <CrashComponent />}
+          {!forceError && (
+            <>
+              {loading && <p>Loading...</p>}
+              {error && <p className="error">Error: {error}</p>}
 
-        <section className="results">
-          <ErrorBoundary onReset={this.handleResetError}>
-            {forceError && <CrashComponent />}
-            {!forceError && (
-              <>
-                {loading && <p>Loading...</p>}
-                {error && <p className="error">Error: {error}</p>}
-
-                {!loading && !error && (
-                  <>
-                    <table className="results-table">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Name</th>
-                          <th>Birth Year</th>
+              {!loading && !error && (
+                <>
+                  <table className="results-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Birth Year</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {people.map((person, index) => (
+                        <tr key={person.url}>
+                          <td>{(page - 1) * 10 + index + 1}</td>
+                          <td>{person.name}</td>
+                          <td>{person.birth_year}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {people.map((person, index) => (
-                          <tr key={person.url}>
-                            <td>{(page - 1) * 10 + index + 1}</td>
-                            <td>{person.name}</td>
-                            <td>{person.birth_year}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div className="pagination">
-                      <button onClick={this.handlePrev} disabled={page === 1}>
-                        Prev
-                      </button>
-                      <span>
-                        Page {page} of {Math.max(1, Math.ceil(count / 10))}
-                      </span>
-                      <button
-                        onClick={this.handleNext}
-                        disabled={page >= Math.ceil(count / 10)}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </ErrorBoundary>
-        </section>
-      </div>
-    );
-  }
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="pagination">
+                    <button onClick={handlePrev} disabled={page === 1}>
+                      Prev
+                    </button>
+                    <span>
+                      Page {page} of {Math.max(1, Math.ceil(count / 10))}
+                    </span>
+                    <button
+                      onClick={handleNext}
+                      disabled={page >= Math.ceil(count / 10)}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </ErrorBoundary>
+      </section>
+    </div>
+  );
 }
 
 export default PeopleSearch;

@@ -1,29 +1,24 @@
-import React from 'react';
+import { useState } from 'react';
 import PeopleSearch from './components/PeopleSearch';
 import './App.css';
 
-type AppState = {
-  visible: boolean;
-};
+function App() {
+  const [visible, setVisible] = useState(true);
 
-class App extends React.Component<unknown, AppState> {
-  state: AppState = { visible: true };
+  const toggle = () => setVisible((prev) => !prev);
 
-  toggle = () => this.setState({ visible: !this.state.visible });
-
-  render() {
-    return (
-      <main className="main">
-        <header className="header">
-          <h1>Class-components</h1>
-          <button onClick={this.toggle}>
-            {this.state.visible ? 'Hide' : 'Show'}
-          </button>
-        </header>
-        {this.state.visible && <PeopleSearch />}
-      </main>
-    );
-  }
+  return (
+    <main className="main">
+      <header className="header">
+        <h1>Class-components</h1>
+        <button onClick={toggle}>
+          {visible ? 'Hide' : 'Show'}
+        </button>
+      </header>
+      {visible && <PeopleSearch />}
+    </main>
+  );
 }
 
 export default App;
+

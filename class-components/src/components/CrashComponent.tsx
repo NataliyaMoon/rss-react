@@ -1,13 +1,11 @@
-import React from 'react';
+import { useEffect } from 'react';
 
-class CrashComponent extends React.Component {
-  componentDidMount() {
+function CrashComponent() {
+  useEffect(() => {
     throw new Error('Simulated crash');
-  }
+  }, []);
 
-  render() {
-    return null;
-  }
+  return null;
 }
 
 export default CrashComponent;

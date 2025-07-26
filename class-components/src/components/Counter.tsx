@@ -1,46 +1,37 @@
-import React from 'react';
-
-type CounterState = {
-  count: number;
-};
+import { useEffect, useState } from 'react';
 
 type DisplayProps = {
   count: number;
 };
 
-class Display extends React.Component<DisplayProps> {
-  render() {
-    return <span>{this.props.count}</span>;
-  }
+function Display({ count }: DisplayProps) {
+  return <span>{count}</span>;
 }
 
-class Counter extends React.Component<unknown, CounterState> {
-  state: CounterState = { count: 0 };
+function Counter() {
+  const [count, setCount] = useState(0);
 
-  componentDidMount() {
+  useEffect(() => {
     console.log('Counter mounted');
-  }
+    return () => {
+      console.log('Counter will unmount');
+    };
+  }, []);
 
-  componentDidUpdate(_: unknown, prevState: CounterState) {
-    console.log('Counter updated', prevState.count, '→', this.state.count);
-  }
+  useEffect(() => {
+    console.log('Counter updated', count);
+  }, [count]);
 
-  componentWillUnmount() {
-    console.log('Counter will unmount');
-  }
+  const increment = () => setCount((prev) => prev + 1);
+  const decrement = () => setCount((prev) => prev - 1);
 
-  increment = () => this.setState({ count: this.state.count + 1 });
-  decrement = () => this.setState({ count: this.state.count - 1 });
-
-  render() {
-    return (
-      <div>
-        <button onClick={this.decrement}>−</button>
-        <Display count={this.state.count} />
-        <button onClick={this.increment}>+</button>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <button onClick={decrement}>−</button>
+      <Display count={count} />
+      <button onClick={increment}>+</button>
+    </div>
+  );
 }
 
 export default Counter;
