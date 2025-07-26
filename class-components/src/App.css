@@ -13,7 +13,9 @@ button {
   width: 100px;
   height: 30px;
   margin: 10px;
+  cursor: pointer;
 }
+
 .app-body {
   display: flex;
   gap: 2rem;
@@ -66,4 +68,8 @@ button {
   margin-top: 1rem;
   display: flex;
   justify-content: space-between;
+}
+
+.about-us {
+  margin: 20px;
 }
