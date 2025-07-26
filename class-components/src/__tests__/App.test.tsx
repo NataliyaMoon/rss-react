@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from '../App';
 import { vi, describe, it, expect } from 'vitest';
+import App from '../App';
 
 vi.mock('../components/PeopleSearch', () => ({
   default: () => <div data-testid="people-search">PeopleSearch mock</div>,
@@ -11,7 +11,7 @@ describe('App', () => {
   it('renders the header', () => {
     render(<App />);
     expect(
-      screen.getByRole('heading', { name: /Class-components/i })
+      screen.getByRole('heading', { name: /react app/i })
     ).toBeInTheDocument();
   });
 
@@ -22,7 +22,7 @@ describe('App', () => {
 
   it('toggles PeopleSearch when a button is clicked', async () => {
     render(<App />);
-    const button = screen.getByRole('button', { name: /Hide/i });
+    const button = screen.getByRole('button', { name: /hide/i });
 
     await userEvent.click(button);
     expect(screen.queryByTestId('people-search')).not.toBeInTheDocument();

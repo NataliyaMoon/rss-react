@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom';
 import PeopleSearch from './components/PeopleSearch';
 import PersonDetailsWrapper from './components/PersonDetailsWrapper';
-import AboutUs from './components/AboutUs'; // ✅ добавлено
+import AboutUs from './components/AboutUs';
 import './App.css';
 
 function AppContent() {

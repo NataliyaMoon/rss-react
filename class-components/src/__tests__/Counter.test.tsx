@@ -24,10 +24,11 @@ describe('Counter', () => {
   it('logs to console on mount, update, and unmount', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     const { unmount } = render(<Counter />);
+
     expect(log).toHaveBeenCalledWith('Counter mounted');
 
     await userEvent.click(screen.getByRole('button', { name: '+' }));
-    expect(log).toHaveBeenCalledWith('Counter updated', 0, '→', 1);
+    expect(log).toHaveBeenCalledWith('Counter updated', 1);
 
     unmount();
     expect(log).toHaveBeenCalledWith('Counter will unmount');

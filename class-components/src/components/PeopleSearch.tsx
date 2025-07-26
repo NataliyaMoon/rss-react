@@ -142,7 +142,7 @@ function PeopleSearch() {
 
                 <div className="pagination">
                   <button onClick={handlePrev} disabled={page === 1}>Prev</button>
-                  <span>Page {page} of {Math.ceil(count / 10)}</span>
+                  <span>Page {page} of {Math.max(1, Math.ceil(count / 10))}</span>
                   <button onClick={handleNext} disabled={page >= Math.ceil(count / 10)}>Next</button>
                 </div>
               </div>
