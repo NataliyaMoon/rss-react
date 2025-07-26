@@ -6,7 +6,7 @@ type Person = {
   mass: string;
   birth_year: string;
   gender: string;
-  url: string;
+  eye_color: string;
 };
 
 type Props = {
@@ -37,6 +37,7 @@ function PersonDetails({ url }: Props) {
       <p>Birth Year: {person.birth_year}</p>
       <p>Height: {person.height} cm</p>
       <p>Mass: {person.mass} kg</p>
+      <p>Eye color: {person.eye_color}</p>
     </div>
   );
 }

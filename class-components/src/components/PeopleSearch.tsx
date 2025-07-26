@@ -8,6 +8,10 @@ type Person = {
   name: string;
   birth_year: string;
   url: string;
+  gender: string;
+  height: string;
+  mass: string;
+  eye_color: string;
 };
 
 function PeopleSearch() {
@@ -17,8 +21,8 @@ function PeopleSearch() {
   const page = Number(pageParam);
 
   const [storedQuery, setStoredQuery] = useLocalStorage('peopleSearchQuery', '');
-  const searchQueryParam = searchParams.get('search') || '';
-  const [query, setQuery] = useState(searchQueryParam || storedQuery);
+  const searchParamQuery = searchParams.get('search') || '';
+  const [query, setQuery] = useState(searchParamQuery || storedQuery);
 
   const [people, setPeople] = useState<Person[]>([]);
   const [count, setCount] = useState(0);
@@ -27,29 +31,30 @@ function PeopleSearch() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const fetchPeople = async () => {
+
+    const fetchData = async () => {
       setLoading(true);
       setError('');
       try {
         const baseUrl = 'https://swapi.py4e.com/api/people/';
-        const url = `${baseUrl}?search=${encodeURIComponent(query.trim())}&page=${page}`;
+        const url = `${baseUrl}?search=${encodeURIComponent(query)}&page=${page}`;
         const res = await fetch(url, { signal: controller.signal });
 
-        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-        const data: { results: Person[]; count: number } = await res.json();
+        if (!res.ok) throw new Error(`Error: ${res.status}`);
+        const data = await res.json();
         setPeople(data.results || []);
         setCount(data.count || 0);
       } catch (err: unknown) {
         if (!(err instanceof DOMException)) {
-          const msg = err instanceof Error ? err.message : 'Something went wrong.';
-          setError(msg);
+          const message = err instanceof Error ? err.message : 'Unknown error';
+          setError(message);
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPeople();
+    fetchData();
     return () => controller.abort();
   }, [page, query]);
 
@@ -66,14 +71,14 @@ function PeopleSearch() {
 
   const handlePrev = () => {
     if (page > 1) {
-      navigate(`/${page - 1}${detailsId ? `/${detailsId}` : ''}`);
+      navigate(`/${page - 1}${detailsId ? `/${detailsId}` : ''}?search=${encodeURIComponent(query)}`);
     }
   };
 
   const handleNext = () => {
     const maxPage = Math.ceil(count / 10);
     if (page < maxPage) {
-      navigate(`/${page + 1}${detailsId ? `/${detailsId}` : ''}`);
+      navigate(`/${page + 1}${detailsId ? `/${detailsId}` : ''}?search=${encodeURIComponent(query)}`);
     }
   };
 
@@ -91,6 +96,7 @@ function PeopleSearch() {
     <div className="people-search">
       <section className="search-bar">
         <input
+          id='search-input'
           type="text"
           placeholder="Search people..."
           value={query}
@@ -122,8 +128,8 @@ function PeopleSearch() {
                       return (
                         <tr
                           key={person.url}
-                          onClick={() => handleSelect(person)}
                           className={isActive ? 'active-row' : ''}
+                          onClick={() => handleSelect(person)}
                         >
                           <td>{(page - 1) * 10 + index + 1}</td>
                           <td>{person.name}</td>
@@ -135,31 +141,10 @@ function PeopleSearch() {
                 </table>
 
                 <div className="pagination">
-                  <button onClick={handlePrev} disabled={page === 1}>
-                    Prev
-                  </button>
-                  <span>
-                    Page {page} of {Math.max(1, Math.ceil(count / 10))}
-                  </span>
-                  <button
-                    onClick={handleNext}
-                    disabled={page >= Math.ceil(count / 10)}
-                  >
-                    Next
-                  </button>
+                  <button onClick={handlePrev} disabled={page === 1}>Prev</button>
+                  <span>Page {page} of {Math.ceil(count / 10)}</span>
+                  <button onClick={handleNext} disabled={page >= Math.ceil(count / 10)}>Next</button>
                 </div>
-              </div>
-
-              <div className="detail-column">
-                {selectedPerson ? (
-                  <div className="detail-card">
-                    <h2>{selectedPerson.name}</h2>
-                    <p>Birth Year: {selectedPerson.birth_year}</p>
-                    <p>URL: {selectedPerson.url}</p>
-                  </div>
-                ) : (
-                  <p className="placeholder">Select a person to view details</p>
-                )}
               </div>
             </>
           )}
