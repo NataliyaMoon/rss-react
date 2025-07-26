@@ -40,7 +40,7 @@ function PeopleSearch() {
         const url = `${baseUrl}?search=${encodeURIComponent(query)}&page=${page}`;
         const res = await fetch(url, { signal: controller.signal });
 
-        if (!res.ok) throw new Error(`Error: ${res.status}`);
+        if (!res.ok) throw new Error(`${res.status}`);
         const data = await res.json();
         setPeople(data.results || []);
         setCount(data.count || 0);

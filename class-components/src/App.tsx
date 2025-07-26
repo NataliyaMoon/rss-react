@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 import PeopleSearch from './components/PeopleSearch';
 import PersonDetailsWrapper from './components/PersonDetailsWrapper';
+import AboutUs from './components/AboutUs'; // ✅ добавлено
 import './App.css';
 
 function AppContent() {
@@ -44,6 +45,7 @@ function App() {
             <Route path=":detailsId" element={<PersonDetailsWrapper />} />
           </Route>
         </Route>
+        <Route path="/about" element={<AboutUs />} />
       </Routes>
     </BrowserRouter>
   );
