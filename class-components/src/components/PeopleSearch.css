@@ -28,3 +28,34 @@
 .results-table th {
   background-color: #f4f4f4;
 }
+
+.two-columns {
+  display: flex;
+  gap: 2rem;
+}
+
+.list-column {
+  flex: 1;
+}
+
+.detail-column {
+  flex: 1;
+  border-left: 1px solid #ccc;
+  padding-left: 1rem;
+}
+
+.detail-card {
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.active-row {
+  background-color: #dfefff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.results-table tbody tr:hover {
+  background-color: #f0f0f0;
+}

@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import PeopleSearch from './components/PeopleSearch';
 import './App.css';
 
-function App() {
+function AppContent() {
   const [visible, setVisible] = useState(true);
-
   const toggle = () => setVisible((prev) => !prev);
 
   return (
@@ -20,5 +20,16 @@ function App() {
   );
 }
 
-export default App;
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AppContent />} />
+        <Route path="/:page" element={<AppContent />} />
+        <Route path="/:page/:detailsId" element={<AppContent />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
+export default App;

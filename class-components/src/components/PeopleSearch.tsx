@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './PeopleSearch.css';
 import ErrorBoundary from './ErrorBoundary';
-import CrashComponent from './CrashComponent';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 type Person = {
@@ -11,43 +11,47 @@ type Person = {
 };
 
 function PeopleSearch() {
-  const [query, setQuery] = useLocalStorage('peopleSearchQuery', '');
+  const { page: pageParam = '1', detailsId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const page = Number(pageParam);
+
+  const [storedQuery, setStoredQuery] = useLocalStorage('peopleSearchQuery', '');
+  const searchQueryParam = searchParams.get('search') || '';
+  const [query, setQuery] = useState(searchQueryParam || storedQuery);
+
   const [people, setPeople] = useState<Person[]>([]);
-  const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [forceError, setForceError] = useState(false);
 
   useEffect(() => {
-    fetchPeople();
-  }, [page]);
+    const controller = new AbortController();
+    const fetchPeople = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const baseUrl = 'https://swapi.py4e.com/api/people/';
+        const url = `${baseUrl}?search=${encodeURIComponent(query.trim())}&page=${page}`;
+        const res = await fetch(url, { signal: controller.signal });
 
-  const fetchPeople = () => {
-    setLoading(true);
-    setError('');
-
-    const baseUrl = 'https://swapi.py4e.com/api/people/';
-    const url = `${baseUrl}?search=${encodeURIComponent(query.trim())}&page=${page}`;
-
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Request failed: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data: { results: Person[]; count: number }) => {
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const data: { results: Person[]; count: number } = await res.json();
         setPeople(data.results || []);
         setCount(data.count || 0);
+      } catch (err: unknown) {
+        if (!(err instanceof DOMException)) {
+          const msg = err instanceof Error ? err.message : 'Something went wrong.';
+          setError(msg);
+        }
+      } finally {
         setLoading(false);
-      })
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : 'Something went wrong.';
-        setError(message);
-        setLoading(false);
-      });
-  };
+      }
+    };
+
+    fetchPeople();
+    return () => controller.abort();
+  }, [page, query]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -55,27 +59,33 @@ function PeopleSearch() {
 
   const handleSearch = () => {
     const trimmed = query.trim();
-    setPage(1);
-    setQuery(trimmed);
-    setTimeout(fetchPeople, 0);
+    setStoredQuery(trimmed);
+    setSearchParams({ search: trimmed });
+    navigate(`/1${detailsId ? `/${detailsId}` : ''}`);
   };
 
   const handlePrev = () => {
     if (page > 1) {
-      setPage((prev) => prev - 1);
+      navigate(`/${page - 1}${detailsId ? `/${detailsId}` : ''}`);
     }
   };
 
   const handleNext = () => {
     const maxPage = Math.ceil(count / 10);
     if (page < maxPage) {
-      setPage((prev) => prev + 1);
+      navigate(`/${page + 1}${detailsId ? `/${detailsId}` : ''}`);
     }
   };
 
-  const handleResetError = () => {
-    setForceError(false);
+  const handleSelect = (person: Person) => {
+    const id = person.url.split('/').filter(Boolean).pop();
+    navigate(`/${page}/${id}?search=${encodeURIComponent(query)}`);
   };
+
+  const selectedPerson = people.find((p) => {
+    const id = p.url.split('/').filter(Boolean).pop();
+    return id === detailsId;
+  });
 
   return (
     <div className="people-search">
@@ -87,53 +97,70 @@ function PeopleSearch() {
           onChange={handleInputChange}
         />
         <button onClick={handleSearch}>Search</button>
-        <button onClick={() => setForceError(true)}>Throw Error</button>
       </section>
 
-      <section className="results">
-        <ErrorBoundary onReset={handleResetError}>
-          {forceError && <CrashComponent />}
-          {!forceError && (
-            <>
-              {loading && <p>Loading...</p>}
-              {error && <p className="error">Error: {error}</p>}
+      <section className="results two-columns">
+        <ErrorBoundary>
+          {loading && <p>Loading...</p>}
+          {error && <p className="error">Error: {error}</p>}
 
-              {!loading && !error && (
-                <>
-                  <table className="results-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Birth Year</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {people.map((person, index) => (
-                        <tr key={person.url}>
+          {!loading && !error && (
+            <>
+              <div className="list-column">
+                <table className="results-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Name</th>
+                      <th>Birth Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {people.map((person, index) => {
+                      const id = person.url.split('/').filter(Boolean).pop();
+                      const isActive = id === detailsId;
+                      return (
+                        <tr
+                          key={person.url}
+                          onClick={() => handleSelect(person)}
+                          className={isActive ? 'active-row' : ''}
+                        >
                           <td>{(page - 1) * 10 + index + 1}</td>
                           <td>{person.name}</td>
                           <td>{person.birth_year}</td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div className="pagination">
-                    <button onClick={handlePrev} disabled={page === 1}>
-                      Prev
-                    </button>
-                    <span>
-                      Page {page} of {Math.max(1, Math.ceil(count / 10))}
-                    </span>
-                    <button
-                      onClick={handleNext}
-                      disabled={page >= Math.ceil(count / 10)}
-                    >
-                      Next
-                    </button>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                <div className="pagination">
+                  <button onClick={handlePrev} disabled={page === 1}>
+                    Prev
+                  </button>
+                  <span>
+                    Page {page} of {Math.max(1, Math.ceil(count / 10))}
+                  </span>
+                  <button
+                    onClick={handleNext}
+                    disabled={page >= Math.ceil(count / 10)}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+
+              <div className="detail-column">
+                {selectedPerson ? (
+                  <div className="detail-card">
+                    <h2>{selectedPerson.name}</h2>
+                    <p>Birth Year: {selectedPerson.birth_year}</p>
+                    <p>URL: {selectedPerson.url}</p>
                   </div>
-                </>
-              )}
+                ) : (
+                  <p className="placeholder">Select a person to view details</p>
+                )}
+              </div>
             </>
           )}
         </ErrorBoundary>
