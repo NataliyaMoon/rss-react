@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './PeopleSearch.css';
 import ErrorBoundary from './ErrorBoundary';
 import CrashComponent from './CrashComponent';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 type Person = {
   name: string;
@@ -10,7 +11,7 @@ type Person = {
 };
 
 function PeopleSearch() {
-  const [query, setQuery] = useState(() => localStorage.getItem('peopleSearchQuery') || '');
+  const [query, setQuery] = useLocalStorage('peopleSearchQuery', '');
   const [people, setPeople] = useState<Person[]>([]);
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
@@ -54,7 +55,6 @@ function PeopleSearch() {
 
   const handleSearch = () => {
     const trimmed = query.trim();
-    localStorage.setItem('peopleSearchQuery', trimmed);
     setPage(1);
     setQuery(trimmed);
     setTimeout(fetchPeople, 0);
