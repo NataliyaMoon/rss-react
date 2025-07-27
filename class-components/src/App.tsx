@@ -1,29 +1,57 @@
-import React from 'react';
+import { useState } from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Outlet,
+  useNavigate,
+} from 'react-router-dom';
 import PeopleSearch from './components/PeopleSearch';
+import PersonDetailsWrapper from './components/PersonDetailsWrapper';
+import AboutUs from './components/AboutUs';
 import './App.css';
 
-type AppState = {
-  visible: boolean;
-};
+function AppContent() {
+  const [visible, setVisible] = useState<boolean>(true);
+  const toggle = (): void => setVisible((prev: boolean): boolean => !prev);
+  const navigate = useNavigate();
 
-class App extends React.Component<unknown, AppState> {
-  state: AppState = { visible: true };
+  return (
+    <main className="main">
+      <header className="header">
+        <h1>React app</h1>
+        <button onClick={toggle}>{visible ? 'Hide' : 'Show'}</button>
+        <button onClick={() => navigate('/about')}>About us</button>
+      </header>
+      <section className="app-body">
+        {visible && (
+          <>
+            <PeopleSearch />
+            <Outlet />
+          </>
+        )}
+      </section>
+    </main>
+  );
+}
 
-  toggle = () => this.setState({ visible: !this.state.visible });
+function PageWrapper() {
+  return <Outlet />;
+}
 
-  render() {
-    return (
-      <main className="main">
-        <header className="header">
-          <h1>Class-components</h1>
-          <button onClick={this.toggle}>
-            {this.state.visible ? 'Hide' : 'Show'}
-          </button>
-        </header>
-        {this.state.visible && <PeopleSearch />}
-      </main>
-    );
-  }
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AppContent />}>
+          <Route path=":page" element={<PageWrapper />}>
+            <Route path=":detailsId" element={<PersonDetailsWrapper />} />
+          </Route>
+        </Route>
+        <Route path="/about" element={<AboutUs />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
