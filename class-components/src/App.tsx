@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Outlet,
+  useNavigate,
 } from 'react-router-dom';
 import PeopleSearch from './components/PeopleSearch';
 import PersonDetailsWrapper from './components/PersonDetailsWrapper';
@@ -13,12 +14,14 @@ import './App.css';
 function AppContent() {
   const [visible, setVisible] = useState<boolean>(true);
   const toggle = (): void => setVisible((prev: boolean): boolean => !prev);
+  const navigate = useNavigate();
 
   return (
     <main className="main">
       <header className="header">
         <h1>React app</h1>
         <button onClick={toggle}>{visible ? 'Hide' : 'Show'}</button>
+        <button onClick={() => navigate('/about')}>About us</button>
       </header>
       <section className="app-body">
         {visible && (
