@@ -3,8 +3,19 @@ import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import App from '../App';
 
+// Мокаем PeopleSearch
 vi.mock('../components/PeopleSearch', () => ({
   default: () => <div data-testid="people-search">PeopleSearch mock</div>,
+}));
+
+// Мокаем AboutUs
+vi.mock('../components/AboutUs', () => ({
+  default: () => (
+    <div>
+      <h2>About Us</h2>
+      <p>This is the About page</p>
+    </div>
+  ),
 }));
 
 describe('App', () => {
@@ -31,5 +42,15 @@ describe('App', () => {
     await userEvent.click(button);
     expect(screen.getByTestId('people-search')).toBeInTheDocument();
     expect(button).toHaveTextContent('Hide');
+  });
+
+  it('navigates to About page when About button is clicked', async () => {
+    render(<App />);
+    const aboutButton = screen.getByRole('button', { name: /about us/i });
+    await userEvent.click(aboutButton);
+
+    expect(await screen.findByRole('heading', { name: /about us/i }))
+      .toBeInTheDocument();
+    expect(screen.getByText(/this is the about page/i)).toBeInTheDocument();
   });
 });
