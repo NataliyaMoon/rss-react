@@ -3,12 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import App from '../App';
 
-// Мокаем PeopleSearch
 vi.mock('../components/PeopleSearch', () => ({
   default: () => <div data-testid="people-search">PeopleSearch mock</div>,
 }));
 
-// Мокаем AboutUs
 vi.mock('../components/AboutUs', () => ({
   default: () => (
     <div>
