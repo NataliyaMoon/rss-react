@@ -2,36 +2,35 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 type Person = {
   name: string;
-  birth_year: string;
   url: string;
-  gender: string;
-  height: string;
-  mass: string;
-  eye_color: string;
+  [key: string]: unknown;
 };
 
 type PeopleState = {
-  selectedPerson: Person | null;
-  searchQuery: string;
+  selected: Record<string, Person>;
 };
 
 const initialState: PeopleState = {
-  selectedPerson: null,
-  searchQuery: '',
+  selected: {},
 };
 
 const peopleSlice = createSlice({
   name: 'people',
   initialState,
   reducers: {
-    setSelectedPerson(state, action: PayloadAction<Person | null>) {
-      state.selectedPerson = action.payload;
+    toggleSelection: (state, action: PayloadAction<Person>) => {
+      const id = action.payload.url;
+      if (state.selected[id]) {
+        delete state.selected[id];
+      } else {
+        state.selected[id] = action.payload;
+      }
     },
-    setSearchQuery(state, action: PayloadAction<string>) {
-      state.searchQuery = action.payload;
+    clearSelection: (state) => {
+      state.selected = {};
     },
   },
 });
 
-export const { setSelectedPerson, setSearchQuery } = peopleSlice.actions;
+export const { toggleSelection, clearSelection } = peopleSlice.actions;
 export default peopleSlice.reducer;

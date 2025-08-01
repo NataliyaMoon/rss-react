@@ -1,16 +1,24 @@
-* {
-  background-color: rgb(255, 220, 255);
+body {
+  margin: 0 auto;
 }
 
 main {
-  margin: 30px;
-  padding: 10px;
+  padding: 30px;
+}
+
+.light {
+  background-color: rgb(255, 220, 255);
+}
+
+.dark {
+  background-color: rgb(54, 54, 54);
+  color: rgb(159, 157, 157);
 }
 
 button {
   background-color: violet;
   border-radius: 5px;
-  width: 100px;
+  width: 150px;
   height: 30px;
   margin: 10px;
   cursor: pointer;
@@ -72,4 +80,8 @@ button {
 
 .about-us {
   margin: 20px;
+}
+
+.header button {
+  margin-right: 10px;
 }

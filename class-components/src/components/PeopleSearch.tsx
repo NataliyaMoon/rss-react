@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { setSearchQuery, setSelectedPerson } from './slices/peopleSlice';
 import './PeopleSearch.css';
 import ErrorBoundary from './ErrorBoundary';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 type Person = {
   name: string;
@@ -20,10 +18,9 @@ function PeopleSearch() {
   const { page: pageParam = '1', detailsId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const storedQuery = useSelector((state: RootState) => state.people.searchQuery);
   const page = Number(pageParam);
+
+  const [storedQuery, setStoredQuery] = useLocalStorage('peopleSearchQuery', '');
   const searchParamQuery = searchParams.get('search') || '';
   const [query, setQuery] = useState(searchParamQuery || storedQuery);
 
@@ -67,7 +64,7 @@ function PeopleSearch() {
 
   const handleSearch = () => {
     const trimmed = query.trim();
-    dispatch(setSearchQuery(trimmed));
+    setStoredQuery(trimmed);
     setSearchParams({ search: trimmed });
     navigate(`/1${detailsId ? `/${detailsId}` : ''}`);
   };
@@ -86,7 +83,6 @@ function PeopleSearch() {
   };
 
   const handleSelect = (person: Person) => {
-    dispatch(setSelectedPerson(person));
     const id = person.url.split('/').filter(Boolean).pop();
     navigate(`/${page}/${id}?search=${encodeURIComponent(query)}`);
   };
@@ -100,7 +96,7 @@ function PeopleSearch() {
     <div className="people-search">
       <section className="search-bar">
         <input
-          id="search-input"
+          id='search-input'
           type="text"
           placeholder="Search people..."
           value={query}
@@ -115,46 +111,42 @@ function PeopleSearch() {
           {error && <p className="error">Error: {error}</p>}
 
           {!loading && !error && (
-            <div className="list-column">
-              <table className="results-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Birth Year</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {people.map((person, index) => {
-                    const id = person.url.split('/').filter(Boolean).pop();
-                    const isActive = id === detailsId;
-                    return (
-                      <tr
-                        key={person.url}
-                        className={isActive ? 'active-row' : ''}
-                        onClick={() => handleSelect(person)}
-                      >
-                        <td>{(page - 1) * 10 + index + 1}</td>
-                        <td>{person.name}</td>
-                        <td>{person.birth_year}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <>
+              <div className="list-column">
+                <table className="results-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Name</th>
+                      <th>Birth Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {people.map((person, index) => {
+                      const id = person.url.split('/').filter(Boolean).pop();
+                      const isActive = id === detailsId;
+                      return (
+                        <tr
+                          key={person.url}
+                          className={isActive ? 'active-row' : ''}
+                          onClick={() => handleSelect(person)}
+                        >
+                          <td>{(page - 1) * 10 + index + 1}</td>
+                          <td>{person.name}</td>
+                          <td>{person.birth_year}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
 
-              <div className="pagination">
-                <button onClick={handlePrev} disabled={page === 1}>
-                  Prev
-                </button>
-                <span>
-                  Page {page} of {Math.max(1, Math.ceil(count / 10))}
-                </span>
-                <button onClick={handleNext} disabled={page >= Math.ceil(count / 10)}>
-                  Next
-                </button>
+                <div className="pagination">
+                  <button onClick={handlePrev} disabled={page === 1}>Prev</button>
+                  <span>Page {page} of {Math.max(1, Math.ceil(count / 10))}</span>
+                  <button onClick={handleNext} disabled={page >= Math.ceil(count / 10)}>Next</button>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </ErrorBoundary>
       </section>
