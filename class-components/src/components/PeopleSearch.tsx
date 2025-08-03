@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
 import { toggleSelection } from './slices/peopleSlice';
 import { setSearchQuery } from './slices/peopleSlice';
+import SelectionBar from './SelectionBar';
 
 type Person = {
   name: string;
@@ -26,7 +27,7 @@ function PeopleSearch() {
   const reduxQuery = useSelector((state: RootState) => state.people.searchQuery);
   const searchParamQuery = searchParams.get('search') || '';
   const [query, setQuery] = useState(searchParamQuery || reduxQuery);
-  
+
   useEffect(() => {
     if (!searchParamQuery && reduxQuery) {
       setQuery(reduxQuery);
@@ -168,6 +169,7 @@ function PeopleSearch() {
           )}
         </ErrorBoundary>
       </section>
+      <SelectionBar />
     </div>
   );
 }
