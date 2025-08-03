@@ -1,11 +1,18 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import peopleReducer from '../components/slices/peopleSlice';
 import PeopleSearch from '../components/PeopleSearch';
 
 vi.mock('../components/ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock('../components/SelectionBar', () => ({
+  default: () => <div data-testid="selection-bar">SelectionBar mock</div>,
 }));
 
 const mockPeople = [
@@ -35,44 +42,53 @@ const createMockResponse = (data: object) =>
     json: () => Promise.resolve(data),
   });
 
-const renderWithRouter = (initialEntries: string[] = ['/1']) =>
-  render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Routes>
-        <Route path="/:page/:detailsId?" element={<PeopleSearch />} />
-      </Routes>
-    </MemoryRouter>
+const renderWithProviders = (initialEntries: string[] = ['/1']) => {
+  const store = configureStore({
+    reducer: { people: peopleReducer },
+    preloadedState: {
+      people: {
+        selected: {},
+        searchQuery: '',
+      },
+    },
+  });
+
+  return render(
+    <Provider store={store}>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Routes>
+          <Route path="/:page/:detailsId?" element={<PeopleSearch />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
   );
+};
 
 describe('PeopleSearch', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.stubGlobal('fetch', vi.fn(() => createMockResponse({ results: mockPeople, count: 2 })));
-    localStorage.clear();
   });
 
-  it('displays results after loading', async () => {
-    renderWithRouter();
-    await waitFor(() => {
-      expect(screen.getByText('Luke Skywalker')).toBeInTheDocument();
-      expect(screen.getByText('Leia Organa')).toBeInTheDocument();
-    });
+  it('renders fetched people', async () => {
+    renderWithProviders();
+    expect(await screen.findByText('Luke Skywalker')).toBeInTheDocument();
+    expect(screen.getByText('Leia Organa')).toBeInTheDocument();
   });
 
-  it('highlights selected row when detailsId matches', async () => {
-    renderWithRouter(['/1/1?search=luke']);
-    await waitFor(() => {
-      const activeRow = screen.getByText('Luke Skywalker').closest('tr');
-      expect(activeRow).toHaveClass('active-row');
-    });
+  it('shows active row based on detailsId', async () => {
+    renderWithProviders(['/1/1?search=luke']);
+    const activeRow = await screen.findByText('Luke Skywalker');
+    expect(activeRow.closest('tr')).toHaveClass('active-row');
   });
 
-  it('allows entering and searching a query', async () => {
-    renderWithRouter();
+  it('updates search query and navigates', async () => {
+    renderWithProviders();
     const input = screen.getByPlaceholderText(/search people/i);
     await userEvent.clear(input);
     await userEvent.type(input, 'leia');
     await userEvent.click(screen.getByRole('button', { name: /search/i }));
+
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('search=leia'),
@@ -81,27 +97,19 @@ describe('PeopleSearch', () => {
     });
   });
 
-  it('shows an error message on fetch failure', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('fail'))));
-    renderWithRouter();
-    await waitFor(() => {
-      expect(screen.getByText(/error: fail/i)).toBeInTheDocument();
-    });
+  it('handles fetch errors gracefully', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('Network error'))));
+    renderWithProviders();
+    expect(await screen.findByText(/error: network error/i)).toBeInTheDocument();
   });
 
-  it('shows loading message while fetching data', async () => {
+  it('shows loading indicator while fetching', async () => {
     let resolveFetch: () => void;
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        () =>
-          new Promise((resolve) => {
-            resolveFetch = () => resolve(createMockResponse({ results: mockPeople, count: 2 }));
-          })
-      )
-    );
+    vi.stubGlobal('fetch', vi.fn(() => new Promise((res) => {
+      resolveFetch = () => res(createMockResponse({ results: mockPeople, count: 2 }));
+    })));
 
-    renderWithRouter();
+    renderWithProviders();
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
     resolveFetch!();
     await waitFor(() => {
@@ -109,39 +117,32 @@ describe('PeopleSearch', () => {
     });
   });
 
-  it('displays correct page info', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => createMockResponse({ results: mockPeople, count: 25 })));
-    renderWithRouter();
-    await waitFor(() => {
-      expect(screen.getByText(/page 1 of 3/i)).toBeInTheDocument();
-    });
+  it('renders correct pagination info', async () => {
+    vi.stubGlobal('fetch', vi.fn(() =>
+      createMockResponse({ results: mockPeople, count: 25 })
+    ));
+    renderWithProviders();
+    expect(await screen.findByText(/page 1 of 3/i)).toBeInTheDocument();
   });
 
-  it('displays "Page 1 of 1" when no results', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => createMockResponse({ results: [], count: 0 })));
-    renderWithRouter();
-    await waitFor(() => {
-      expect(screen.getByText(/page 1 of 1/i)).toBeInTheDocument();
-    });
+  it('displays no results with "Page 1 of 1"', async () => {
+    vi.stubGlobal('fetch', vi.fn(() =>
+      createMockResponse({ results: [], count: 0 })
+    ));
+    renderWithProviders();
+    expect(await screen.findByText(/page 1 of 1/i)).toBeInTheDocument();
   });
 
-  it('saves query to localStorage and restores it', async () => {
-    localStorage.setItem('peopleSearchQuery', 'leia');
-    renderWithRouter();
-    expect(screen.getByDisplayValue('leia')).toBeInTheDocument();
-  });
+  it('navigates pages via next/prev buttons', async () => {
+    vi.stubGlobal('fetch', vi.fn(() =>
+      createMockResponse({ results: mockPeople, count: 20 })
+    ));
+    renderWithProviders();
 
-  it('handles pagination correctly', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => createMockResponse({ results: mockPeople, count: 20 })));
-    renderWithRouter();
-    await waitFor(() => {
-      expect(screen.getByText('Luke Skywalker')).toBeInTheDocument();
-    });
-
+    await screen.findByText('Luke Skywalker');
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
-    expect(fetch).toHaveBeenCalledTimes(2);
-
     await userEvent.click(screen.getByRole('button', { name: /prev/i }));
+
     expect(fetch).toHaveBeenCalledTimes(3);
   });
 });

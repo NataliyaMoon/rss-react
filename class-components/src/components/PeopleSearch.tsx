@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './PeopleSearch.css';
 import ErrorBoundary from './ErrorBoundary';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState } from '../store';
+import { toggleSelection } from './slices/peopleSlice';
+import { setSearchQuery } from './slices/peopleSlice';
+import SelectionBar from './SelectionBar';
 
 type Person = {
   name: string;
@@ -20,14 +24,25 @@ function PeopleSearch() {
   const navigate = useNavigate();
   const page = Number(pageParam);
 
-  const [storedQuery, setStoredQuery] = useLocalStorage('peopleSearchQuery', '');
+  const reduxQuery = useSelector((state: RootState) => state.people.searchQuery);
   const searchParamQuery = searchParams.get('search') || '';
-  const [query, setQuery] = useState(searchParamQuery || storedQuery);
+  const [query, setQuery] = useState(searchParamQuery || reduxQuery);
+
+  useEffect(() => {
+    if (!searchParamQuery && reduxQuery) {
+      setQuery(reduxQuery);
+      setSearchParams({ search: reduxQuery });
+    }
+  }, []);
 
   const [people, setPeople] = useState<Person[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const dispatch = useDispatch();
+  const selected = useSelector((state: RootState) => state.people.selected);
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -64,7 +79,7 @@ function PeopleSearch() {
 
   const handleSearch = () => {
     const trimmed = query.trim();
-    setStoredQuery(trimmed);
+    dispatch(setSearchQuery(trimmed));
     setSearchParams({ search: trimmed });
     navigate(`/1${detailsId ? `/${detailsId}` : ''}`);
   };
@@ -86,11 +101,6 @@ function PeopleSearch() {
     const id = person.url.split('/').filter(Boolean).pop();
     navigate(`/${page}/${id}?search=${encodeURIComponent(query)}`);
   };
-
-  const selectedPerson = people.find((p) => {
-    const id = p.url.split('/').filter(Boolean).pop();
-    return id === detailsId;
-  });
 
   return (
     <div className="people-search">
@@ -116,6 +126,7 @@ function PeopleSearch() {
                 <table className="results-table">
                   <thead>
                     <tr>
+                      <th></th>
                       <th>#</th>
                       <th>Name</th>
                       <th>Birth Year</th>
@@ -123,14 +134,23 @@ function PeopleSearch() {
                   </thead>
                   <tbody>
                     {people.map((person, index) => {
-                      const id = person.url.split('/').filter(Boolean).pop();
+                      const id = person.url.split('/').filter(Boolean).pop() || '';
                       const isActive = id === detailsId;
+                      const isChecked = Boolean(selected[person.url]);
+
                       return (
                         <tr
                           key={person.url}
                           className={isActive ? 'active-row' : ''}
                           onClick={() => handleSelect(person)}
                         >
+                          <td onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => dispatch(toggleSelection(person))}
+                            />
+                          </td>
                           <td>{(page - 1) * 10 + index + 1}</td>
                           <td>{person.name}</td>
                           <td>{person.birth_year}</td>
@@ -139,7 +159,6 @@ function PeopleSearch() {
                     })}
                   </tbody>
                 </table>
-
                 <div className="pagination">
                   <button onClick={handlePrev} disabled={page === 1}>Prev</button>
                   <span>Page {page} of {Math.max(1, Math.ceil(count / 10))}</span>
@@ -150,6 +169,7 @@ function PeopleSearch() {
           )}
         </ErrorBoundary>
       </section>
+      <SelectionBar />
     </div>
   );
 }
