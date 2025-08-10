@@ -6,8 +6,8 @@ import {
   Outlet,
   useNavigate,
 } from 'react-router-dom';
-
-import { ThemeProvider, useTheme } from '../src/components/ThemeContext';
+import { useSelector } from 'react-redux';
+import { getThemeValue } from './store/selectors/themeSelectors';
 
 import PeopleSearch from './components/PeopleSearch';
 import PersonDetailsWrapper from './components/PersonDetailsWrapper';
@@ -18,8 +18,7 @@ function AppContent() {
   const [visible, setVisible] = useState<boolean>(true);
   const toggle = (): void => setVisible((prev) => !prev);
   const navigate = useNavigate();
-
-  const { theme, toggleTheme } = useTheme();
+  const theme = useSelector(getThemeValue);
 
   return (
     <main className={`main ${theme}`}>
@@ -27,7 +26,6 @@ function AppContent() {
         <h1>React app</h1>
         <button onClick={toggle}>{visible ? 'Hide' : 'Show'}</button>
         <button onClick={() => navigate('/about')}>About us</button>
-        <button onClick={toggleTheme}>Toggle theme ({theme})</button>
       </header>
       <section className="app-body">
         {visible && (
@@ -47,18 +45,16 @@ function PageWrapper() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<AppContent />}>
-            <Route path=":page" element={<PageWrapper />}>
-              <Route path=":detailsId" element={<PersonDetailsWrapper />} />
-            </Route>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AppContent />}>
+          <Route path=":page" element={<PageWrapper />}>
+            <Route path=":detailsId" element={<PersonDetailsWrapper />} />
           </Route>
-          <Route path="/about" element={<AboutUs />} />
-        </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
+        </Route>
+        <Route path="/about" element={<AboutUs />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
