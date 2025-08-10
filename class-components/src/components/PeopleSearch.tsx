@@ -89,7 +89,7 @@ function PeopleSearch() {
             setTimeout(refetch, 0);
           }}
         >
-          Clear Cache
+          Clear cache
         </button>
       </section>
 
