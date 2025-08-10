@@ -6,8 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
 import { toggleSelection, setSearchQuery } from './slices/peopleSlice';
 import SelectionBar from './SelectionBar';
-import { useGetPeopleQuery } from '../services/swapiApi';
-import { swapiApi } from '../services/swapiApi';
+import { useGetPeopleQuery, swapiApi } from '../services/swapiApi';
 
 function PeopleSearch() {
   const { page: pageParam = '1', detailsId } = useParams();
@@ -16,18 +15,26 @@ function PeopleSearch() {
   const page = Number(pageParam);
 
   const reduxQuery = useSelector((state: RootState) => state.people.searchQuery);
-  const searchParamQuery = searchParams.get('search') || '';
-  const [query, setQuery] = useState(searchParamQuery || reduxQuery);
+  const dispatch = useDispatch();
+  const selected = useSelector((state: RootState) => state.people.selected);
 
+  // Приоритет: URL -> LS -> Redux -> ''
+  const searchParamQuery = searchParams.get('search') || '';
+  const [query, setQuery] = useState(
+    searchParamQuery || localStorage.getItem('lastSearch') || reduxQuery || ''
+  );
+
+  // При первом рендере — если URL пустой, но есть сохранённый запрос, добавляем его в URL
   useEffect(() => {
-    if (!searchParamQuery && reduxQuery) {
-      setQuery(reduxQuery);
-      setSearchParams({ search: reduxQuery });
+    if (!searchParamQuery && query) {
+      setSearchParams({ search: query });
     }
   }, []);
 
-  const dispatch = useDispatch();
-  const selected = useSelector((state: RootState) => state.people.selected);
+  // Сохраняем в LS каждый раз при изменении
+  useEffect(() => {
+    localStorage.setItem('lastSearch', query);
+  }, [query]);
 
   const queryString = `search=${encodeURIComponent(query)}&page=${page}`;
   const {
@@ -39,7 +46,7 @@ function PeopleSearch() {
   } = useGetPeopleQuery(queryString, {
     refetchOnReconnect: true,
     refetchOnMountOrArgChange: true,
-    refetchOnFocus: true,
+    refetchOnFocus: true
   });
 
   const people = data?.results || [];
@@ -52,8 +59,9 @@ function PeopleSearch() {
   const handleSearch = () => {
     const trimmed = query.trim();
     dispatch(setSearchQuery(trimmed));
+    localStorage.setItem('lastSearch', trimmed);
     setSearchParams({ search: trimmed });
-    navigate(`/1${detailsId ? `/${detailsId}` : ''}`);
+    navigate(`/1${detailsId ? `/${detailsId}` : ''}?search=${encodeURIComponent(trimmed)}`);
   };
 
   const handlePrev = () => {
