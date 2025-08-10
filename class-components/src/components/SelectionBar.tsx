@@ -1,8 +1,8 @@
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearSelection } from './slices/peopleSlice';
 import type { RootState } from './../store';
 import './SelectionBar.css';
-import { useEffect, useRef, useState } from 'react';
 
 export default function SelectionBar() {
   const dispatch = useDispatch();
@@ -25,23 +25,21 @@ export default function SelectionBar() {
 
   if (selectedCount === 0) return null;
 
-  const handleClear = () => {
-    dispatch(clearSelection());
-  };
+  const handleClear = () => dispatch(clearSelection());
 
   const handleDownload = () => {
-    const csvHeaders = ['Name', 'Birth Year', 'Gender', 'Height', 'Mass', 'Eye Color', 'URL'];
-    const csvRows = selectedArray.map((person) => [
-      person.name,
-      person.birth_year,
-      person.gender,
-      person.height,
-      person.mass,
-      person.eye_color,
-      person.url,
+    const headers = ['Name', 'Birth Year', 'Gender', 'Height', 'Mass', 'Eye Color', 'URL'];
+    const rows = selectedArray.map((p) => [
+      p.name,
+      p.birth_year,
+      p.gender,
+      p.height,
+      p.mass,
+      p.eye_color,
+      p.url,
     ]);
 
-    const csvContent = [csvHeaders, ...csvRows]
+    const content = [headers, ...rows]
       .map((row) =>
         row
           .map((cell) =>
@@ -53,7 +51,7 @@ export default function SelectionBar() {
       )
       .join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
     const blobUrl = URL.createObjectURL(blob);
     setCsvUrl(blobUrl);
     setDownloadName(`${selectedCount}_items.csv`);
@@ -69,12 +67,7 @@ export default function SelectionBar() {
         Download
       </button>
       {csvUrl && downloadName && (
-        <a
-          ref={downloadLinkRef}
-          href={csvUrl}
-          download={downloadName}
-          style={{ display: 'none' }}
-        >
+        <a ref={downloadLinkRef} href={csvUrl} download={downloadName} style={{ display: 'none' }}>
           Download
         </a>
       )}

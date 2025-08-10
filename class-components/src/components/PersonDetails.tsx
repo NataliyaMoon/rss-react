@@ -1,33 +1,14 @@
-import { useEffect, useState } from 'react';
-
-type Person = {
-  name: string;
-  height: string;
-  mass: string;
-  birth_year: string;
-  gender: string;
-  eye_color: string;
-};
+import { useGetPersonByUrlQuery } from '../services/swapiApi';
 
 type Props = {
   url: string;
 };
 
 function PersonDetails({ url }: Props) {
-  const [person, setPerson] = useState<Person | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: person, isLoading, isError, error } = useGetPersonByUrlQuery(url);
 
-  useEffect(() => {
-    setLoading(true);
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        setPerson(data);
-        setLoading(false);
-      });
-  }, [url]);
-
-  if (loading) return <p>Loading details...</p>;
+  if (isLoading) return <p>Loading details...</p>;
+  if (isError) return <p>Error: {error && 'status' in error ? error.status : 'Unknown error'}</p>;
   if (!person) return null;
 
   return (

@@ -1,11 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { Routes, Route, MemoryRouter, useLocation } from 'react-router-dom';
+import { vi, describe, it, expect, beforeEach, Mock } from 'vitest';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import peopleReducer from '../components/slices/peopleSlice';
 import PeopleSearch from '../components/PeopleSearch';
+import { useGetPeopleQuery, swapiApi } from '../services/swapiApi';
 
 vi.mock('../components/ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -15,49 +16,52 @@ vi.mock('../components/SelectionBar', () => ({
   default: () => <div data-testid="selection-bar">SelectionBar mock</div>,
 }));
 
+vi.mock('../services/swapiApi', () => ({
+  useGetPeopleQuery: vi.fn(),
+  swapiApi: {
+    util: {
+      invalidateTags: vi.fn(() => ({ type: 'TEST/INVALIDATE_TAGS' })),
+    },
+    reducerPath: 'swapiApi',
+    reducer: (state = {}) => state,
+    middleware: () => (next: any) => (action: any) => next(action),
+  },
+}));
+
 const mockPeople = [
-  {
-    name: 'Luke Skywalker',
-    birth_year: '19BBY',
-    url: 'https://swapi.dev/api/people/1/',
-    gender: 'male',
-    height: '172',
-    mass: '77',
-    eye_color: 'blue',
-  },
-  {
-    name: 'Leia Organa',
-    birth_year: '19BBY',
-    url: 'https://swapi.dev/api/people/2/',
-    gender: 'female',
-    height: '150',
-    mass: '49',
-    eye_color: 'brown',
-  },
+  { name: 'Luke Skywalker', birth_year: '19BBY', url: 'https://swapi.dev/api/people/1/' },
+  { name: 'Leia Organa', birth_year: '19BBY', url: 'https://swapi.dev/api/people/2/' },
 ];
 
-const createMockResponse = (data: object) =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve(data),
-  });
+function LocationDisplay() {
+  const location = useLocation();
+  return <div data-testid="location-display">{location.search}</div>;
+}
 
 const renderWithProviders = (initialEntries: string[] = ['/1']) => {
   const store = configureStore({
-    reducer: { people: peopleReducer },
-    preloadedState: {
-      people: {
-        selected: {},
-        searchQuery: '',
-      },
+    reducer: {
+      people: peopleReducer,
+      [swapiApi.reducerPath]: swapiApi.reducer,
     },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(swapiApi.middleware),
+    preloadedState: { people: { selected: {}, searchQuery: '' } },
   });
 
-  return render(
+  render(
     <Provider store={store}>
       <MemoryRouter initialEntries={initialEntries}>
         <Routes>
-          <Route path="/:page/:detailsId?" element={<PeopleSearch />} />
+          <Route
+            path="/:page/:detailsId?"
+            element={
+              <>
+                <PeopleSearch />
+                <LocationDisplay />
+              </>
+            }
+          />
         </Routes>
       </MemoryRouter>
     </Provider>
@@ -65,21 +69,29 @@ const renderWithProviders = (initialEntries: string[] = ['/1']) => {
 };
 
 describe('PeopleSearch', () => {
+  const refetchMock = vi.fn();
+
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.stubGlobal('fetch', vi.fn(() => createMockResponse({ results: mockPeople, count: 2 })));
+    (useGetPeopleQuery as unknown as Mock).mockReturnValue({
+      data: { results: mockPeople, count: 2 },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: refetchMock,
+    });
   });
 
-  it('renders fetched people', async () => {
+  it('renders fetched people', () => {
     renderWithProviders();
-    expect(await screen.findByText('Luke Skywalker')).toBeInTheDocument();
+    expect(screen.getByText('Luke Skywalker')).toBeInTheDocument();
     expect(screen.getByText('Leia Organa')).toBeInTheDocument();
   });
 
-  it('shows active row based on detailsId', async () => {
+  it('shows active row based on detailsId', () => {
     renderWithProviders(['/1/1?search=luke']);
-    const activeRow = await screen.findByText('Luke Skywalker');
-    expect(activeRow.closest('tr')).toHaveClass('active-row');
+    const activeRow = screen.getByText('Luke Skywalker').closest('tr');
+    expect(activeRow).toHaveClass('active-row');
   });
 
   it('updates search query and navigates', async () => {
@@ -87,62 +99,82 @@ describe('PeopleSearch', () => {
     const input = screen.getByPlaceholderText(/search people/i);
     await userEvent.clear(input);
     await userEvent.type(input, 'leia');
-    await userEvent.click(screen.getByRole('button', { name: /search/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^search$/i }));
+    expect(screen.getByTestId('location-display').textContent).toContain('leia');
+  });
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('search=leia'),
-        expect.any(Object)
-      );
+  it('handles error state', () => {
+    (useGetPeopleQuery as unknown as Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: { status: 500 },
+      refetch: refetchMock,
     });
-  });
-
-  it('handles fetch errors gracefully', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('Network error'))));
     renderWithProviders();
-    expect(await screen.findByText(/error: network error/i)).toBeInTheDocument();
+    expect(screen.getByText(/500/)).toBeInTheDocument();
   });
 
-  it('shows loading indicator while fetching', async () => {
-    let resolveFetch: () => void;
-    vi.stubGlobal('fetch', vi.fn(() => new Promise((res) => {
-      resolveFetch = () => res(createMockResponse({ results: mockPeople, count: 2 }));
-    })));
-
+  it('shows loading state', () => {
+    (useGetPeopleQuery as unknown as Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      error: null,
+      refetch: refetchMock,
+    });
     renderWithProviders();
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
-    resolveFetch!();
-    await waitFor(() => {
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+  });
+
+  it('renders correct pagination info', () => {
+    (useGetPeopleQuery as unknown as Mock).mockReturnValue({
+      data: { results: mockPeople, count: 25 },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: refetchMock,
     });
+    renderWithProviders();
+    expect(screen.getByText(/page 1 of 3/i)).toBeInTheDocument();
   });
 
-  it('renders correct pagination info', async () => {
-    vi.stubGlobal('fetch', vi.fn(() =>
-      createMockResponse({ results: mockPeople, count: 25 })
-    ));
+  it('displays "Page 1 of 1" for no results', () => {
+    (useGetPeopleQuery as unknown as Mock).mockReturnValue({
+      data: { results: [], count: 0 },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: refetchMock,
+    });
     renderWithProviders();
-    expect(await screen.findByText(/page 1 of 3/i)).toBeInTheDocument();
+    expect(screen.getByText(/page 1 of 1/i)).toBeInTheDocument();
   });
 
-  it('displays no results with "Page 1 of 1"', async () => {
-    vi.stubGlobal('fetch', vi.fn(() =>
-      createMockResponse({ results: [], count: 0 })
-    ));
+  it('calls refetch on Refresh click', async () => {
     renderWithProviders();
-    expect(await screen.findByText(/page 1 of 1/i)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /refresh/i }));
+    expect(refetchMock).toHaveBeenCalled();
   });
 
-  it('navigates pages via next/prev buttons', async () => {
-    vi.stubGlobal('fetch', vi.fn(() =>
-      createMockResponse({ results: mockPeople, count: 20 })
-    ));
+  it('calls invalidateTags and refetch on Clear Cache', async () => {
     renderWithProviders();
+    await userEvent.click(screen.getByRole('button', { name: /clear cache/i }));
+    expect(swapiApi.util.invalidateTags).toHaveBeenCalledWith(['People']);
+    expect(refetchMock).toHaveBeenCalled();
+  });
 
-    await screen.findByText('Luke Skywalker');
+  it('navigates pages via next/prev', async () => {
+    (useGetPeopleQuery as unknown as Mock).mockReturnValue({
+      data: { results: mockPeople, count: 20 },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: refetchMock,
+    });
+    renderWithProviders();
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
     await userEvent.click(screen.getByRole('button', { name: /prev/i }));
-
-    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(screen.getByText(/page 1 of 2/i)).toBeInTheDocument();
   });
 });

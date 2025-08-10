@@ -3,20 +3,11 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './PeopleSearch.css';
 import ErrorBoundary from './ErrorBoundary';
 import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from '../store';
-import { toggleSelection } from './slices/peopleSlice';
+import { getSearchQuery, getSelectedPeople } from '../store/selectors/peopleSelectors';
 import { setSearchQuery } from './slices/peopleSlice';
 import SelectionBar from './SelectionBar';
-
-type Person = {
-  name: string;
-  birth_year: string;
-  url: string;
-  gender: string;
-  height: string;
-  mass: string;
-  eye_color: string;
-};
+import { useGetPeopleQuery, swapiApi } from '../services/swapiApi';
+import PersonRow from './PersonRow';
 
 function PeopleSearch() {
   const { page: pageParam = '1', detailsId } = useParams();
@@ -24,64 +15,48 @@ function PeopleSearch() {
   const navigate = useNavigate();
   const page = Number(pageParam);
 
-  const reduxQuery = useSelector((state: RootState) => state.people.searchQuery);
+  const reduxQuery = useSelector(getSearchQuery);
+  const selected = useSelector(getSelectedPeople);
+  const dispatch = useDispatch();
+
   const searchParamQuery = searchParams.get('search') || '';
-  const [query, setQuery] = useState(searchParamQuery || reduxQuery);
+  const [query, setQuery] = useState(
+    searchParamQuery || localStorage.getItem('lastSearch') || reduxQuery || ''
+  );
 
   useEffect(() => {
-    if (!searchParamQuery && reduxQuery) {
-      setQuery(reduxQuery);
-      setSearchParams({ search: reduxQuery });
+    if (!searchParamQuery && query) {
+      setSearchParams({ search: query });
     }
   }, []);
 
-  const [people, setPeople] = useState<Person[]>([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const dispatch = useDispatch();
-  const selected = useSelector((state: RootState) => state.people.selected);
-
-
   useEffect(() => {
-    const controller = new AbortController();
+    localStorage.setItem('lastSearch', query);
+  }, [query]);
 
-    const fetchData = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const baseUrl = 'https://swapi.py4e.com/api/people/';
-        const url = `${baseUrl}?search=${encodeURIComponent(query)}&page=${page}`;
-        const res = await fetch(url, { signal: controller.signal });
+  const queryString = `search=${encodeURIComponent(query)}&page=${page}`;
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useGetPeopleQuery(queryString, {
+    refetchOnReconnect: true,
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true
+  });
 
-        if (!res.ok) throw new Error(`${res.status}`);
-        const data = await res.json();
-        setPeople(data.results || []);
-        setCount(data.count || 0);
-      } catch (err: unknown) {
-        if (!(err instanceof DOMException)) {
-          const message = err instanceof Error ? err.message : 'Unknown error';
-          setError(message);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-    return () => controller.abort();
-  }, [page, query]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-  };
+  const people = data?.results || [];
+  const count = data?.count || 0;
+  const maxPage = Math.max(1, Math.ceil(count / 10));
 
   const handleSearch = () => {
     const trimmed = query.trim();
     dispatch(setSearchQuery(trimmed));
+    localStorage.setItem('lastSearch', trimmed);
     setSearchParams({ search: trimmed });
-    navigate(`/1${detailsId ? `/${detailsId}` : ''}`);
+    navigate(`/1${detailsId ? `/${detailsId}` : ''}?search=${encodeURIComponent(trimmed)}`);
   };
 
   const handlePrev = () => {
@@ -91,84 +66,76 @@ function PeopleSearch() {
   };
 
   const handleNext = () => {
-    const maxPage = Math.ceil(count / 10);
     if (page < maxPage) {
       navigate(`/${page + 1}${detailsId ? `/${detailsId}` : ''}?search=${encodeURIComponent(query)}`);
     }
-  };
-
-  const handleSelect = (person: Person) => {
-    const id = person.url.split('/').filter(Boolean).pop();
-    navigate(`/${page}/${id}?search=${encodeURIComponent(query)}`);
   };
 
   return (
     <div className="people-search">
       <section className="search-bar">
         <input
-          id='search-input'
+          id="search-input"
           type="text"
           placeholder="Search people..."
           value={query}
-          onChange={handleInputChange}
+          onChange={(e) => setQuery(e.target.value)}
         />
         <button onClick={handleSearch}>Search</button>
+        <button onClick={() => refetch()}>Refresh</button>
+        <button
+          onClick={() => {
+            dispatch(swapiApi.util.invalidateTags(['People']));
+            setTimeout(refetch, 0);
+          }}
+        >
+          Clear cache
+        </button>
       </section>
 
       <section className="results two-columns">
         <ErrorBoundary>
-          {loading && <p>Loading...</p>}
-          {error && <p className="error">Error: {error}</p>}
+          {isLoading && <p>Loading...</p>}
+          {isError && (
+            <p className="error">
+              Error: {error && 'status' in error ? error.status : 'Unknown error'}
+            </p>
+          )}
 
-          {!loading && !error && (
-            <>
-              <div className="list-column">
-                <table className="results-table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>#</th>
-                      <th>Name</th>
-                      <th>Birth Year</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {people.map((person, index) => {
-                      const id = person.url.split('/').filter(Boolean).pop() || '';
-                      const isActive = id === detailsId;
-                      const isChecked = Boolean(selected[person.url]);
+          {!isLoading && !isError && (
+            <div className="list-column">
+              <table className="results-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Birth Year</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {people.map((person, index) => (
+                    <PersonRow
+                      key={person.url}
+                      person={person}
+                      index={index}
+                      page={page}
+                      query={query}
+                    />
+                  ))}
+                </tbody>
+              </table>
 
-                      return (
-                        <tr
-                          key={person.url}
-                          className={isActive ? 'active-row' : ''}
-                          onClick={() => handleSelect(person)}
-                        >
-                          <td onClick={(e) => e.stopPropagation()}>
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => dispatch(toggleSelection(person))}
-                            />
-                          </td>
-                          <td>{(page - 1) * 10 + index + 1}</td>
-                          <td>{person.name}</td>
-                          <td>{person.birth_year}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                <div className="pagination">
-                  <button onClick={handlePrev} disabled={page === 1}>Prev</button>
-                  <span>Page {page} of {Math.max(1, Math.ceil(count / 10))}</span>
-                  <button onClick={handleNext} disabled={page >= Math.ceil(count / 10)}>Next</button>
-                </div>
+              <div className="pagination">
+                <button onClick={handlePrev} disabled={page === 1}>Prev</button>
+                <span>Page {page} of {maxPage}</span>
+                <button onClick={handleNext} disabled={page >= maxPage}>Next</button>
               </div>
-            </>
+            </div>
           )}
         </ErrorBoundary>
       </section>
+
       <SelectionBar />
     </div>
   );
