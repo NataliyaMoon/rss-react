@@ -4,19 +4,10 @@ import './PeopleSearch.css';
 import ErrorBoundary from './ErrorBoundary';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
-import { toggleSelection } from './slices/peopleSlice';
-import { setSearchQuery } from './slices/peopleSlice';
+import { toggleSelection, setSearchQuery } from './slices/peopleSlice';
 import SelectionBar from './SelectionBar';
-
-type Person = {
-  name: string;
-  birth_year: string;
-  url: string;
-  gender: string;
-  height: string;
-  mass: string;
-  eye_color: string;
-};
+import { useGetPeopleQuery } from '../services/swapiApi';
+import { swapiApi } from '../services/swapiApi';
 
 function PeopleSearch() {
   const { page: pageParam = '1', detailsId } = useParams();
@@ -35,43 +26,24 @@ function PeopleSearch() {
     }
   }, []);
 
-  const [people, setPeople] = useState<Person[]>([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
   const dispatch = useDispatch();
   const selected = useSelector((state: RootState) => state.people.selected);
 
+  const queryString = `search=${encodeURIComponent(query)}&page=${page}`;
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useGetPeopleQuery(queryString, {
+    refetchOnReconnect: true,
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+  });
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const baseUrl = 'https://swapi.py4e.com/api/people/';
-        const url = `${baseUrl}?search=${encodeURIComponent(query)}&page=${page}`;
-        const res = await fetch(url, { signal: controller.signal });
-
-        if (!res.ok) throw new Error(`${res.status}`);
-        const data = await res.json();
-        setPeople(data.results || []);
-        setCount(data.count || 0);
-      } catch (err: unknown) {
-        if (!(err instanceof DOMException)) {
-          const message = err instanceof Error ? err.message : 'Unknown error';
-          setError(message);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-    return () => controller.abort();
-  }, [page, query]);
+  const people = data?.results || [];
+  const count = data?.count || 0;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -97,7 +69,7 @@ function PeopleSearch() {
     }
   };
 
-  const handleSelect = (person: Person) => {
+  const handleSelect = (person: { url: string; name: string; birth_year: string }) => {
     const id = person.url.split('/').filter(Boolean).pop();
     navigate(`/${page}/${id}?search=${encodeURIComponent(query)}`);
   };
@@ -106,21 +78,31 @@ function PeopleSearch() {
     <div className="people-search">
       <section className="search-bar">
         <input
-          id='search-input'
+          id="search-input"
           type="text"
           placeholder="Search people..."
           value={query}
           onChange={handleInputChange}
         />
         <button onClick={handleSearch}>Search</button>
+        <button onClick={() => refetch()}>Refresh</button>
+        <button
+          onClick={() => {
+            dispatch(swapiApi.util.invalidateTags(['People']));
+            setTimeout(() => {
+              refetch();
+            }, 0);
+          }}
+        >
+          Clear Cache
+        </button>
       </section>
-
       <section className="results two-columns">
         <ErrorBoundary>
-          {loading && <p>Loading...</p>}
-          {error && <p className="error">Error: {error}</p>}
+          {isLoading && <p>Loading...</p>}
+          {isError && <p className="error">Error: {error && 'status' in error ? error.status : 'Unknown error'}</p>}
 
-          {!loading && !error && (
+          {!isLoading && !isError && (
             <>
               <div className="list-column">
                 <table className="results-table">
