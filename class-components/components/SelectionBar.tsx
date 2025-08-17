@@ -35,10 +35,6 @@ export default function SelectionBar() {
       p.name,
       p.birth_year,
       p.gender,
-      p.height,
-      p.mass,
-      p.eye_color,
-      p.url,
     ]);
 
     const content = [headers, ...rows]
