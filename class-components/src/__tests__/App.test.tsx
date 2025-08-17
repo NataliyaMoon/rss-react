@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import { Provider } from 'react-redux';
-import { store } from '../store';
+import { store } from '../../store';
 import App from '../App';
 
 vi.mock('../components/PeopleSearch', () => ({

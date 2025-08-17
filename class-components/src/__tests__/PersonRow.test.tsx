@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import configureStore from 'redux-mock-store';
-import PersonRow from '../components/PersonRow';
-import type { RootState } from '../store';
+import PersonRow from '../../components/PersonRow';
+import type { RootState } from '../../store';
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
