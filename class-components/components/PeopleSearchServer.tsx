@@ -14,8 +14,6 @@ import './PeopleSearch.css';
 export type Messages = {
   searchPlaceholder: string;
   searchButton: string;
-  refreshButton: string;
-  clearCacheButton: string;
 };
 
 export type Person = {
@@ -26,10 +24,13 @@ export type Person = {
 
 export type PeopleSearchProps = {
   messages: Messages;
-  serverPeople: Person[];
+  serverPeople?: Person[];
 };
 
-export default function PeopleSearchServer({ messages, serverPeople }: PeopleSearchProps) {
+export default function PeopleSearchServer({
+  messages,
+  serverPeople = [],
+}: PeopleSearchProps) {
   const reduxQuery = useSelector((state: RootState) => state.people?.searchQuery ?? '');
   const dispatch = useDispatch();
 
@@ -80,16 +81,6 @@ export default function PeopleSearchServer({ messages, serverPeople }: PeopleSea
             onChange={(e) => setQuery(e.target.value)}
           />
           <button onClick={handleSearch}>{messages.searchButton}</button>
-          <button onClick={() => setPage(1)}>{messages.refreshButton}</button>
-          <button
-            onClick={() => {
-              dispatch(setSearchQuery(''));
-              setQuery('');
-              setPage(1);
-            }}
-          >
-            {messages.clearCacheButton}
-          </button>
         </section>
 
         <section className="results">
@@ -143,10 +134,7 @@ export default function PeopleSearchServer({ messages, serverPeople }: PeopleSea
       <div className="detail-column">
         {selectedPersonName && (
           <div>
-            <button
-              onClick={handleCloseDetails}
-              style={{ marginBottom: '8px' }}
-            >
+            <button onClick={handleCloseDetails} style={{ marginBottom: '8px' }}>
               X
             </button>
             <PersonDetails name={selectedPersonName} people={serverPeople} />
