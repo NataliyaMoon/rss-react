@@ -28,7 +28,14 @@ export default function Page() {
           <button>{t('about')}</button></Link>
       </header>
       <section className="app-body">
-        {visible && <PeopleSearch />}
+        {visible && <PeopleSearch
+          messages={{
+            searchPlaceholder: t('searchPlaceholder'),
+            searchButton: t('searchButton'),
+            refreshButton: t('refreshButton'),
+            clearCacheButton: t('clearCacheButton')
+          }}
+        />}
       </section>
     </main>
   );

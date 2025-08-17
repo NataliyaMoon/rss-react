@@ -15,24 +15,17 @@ import ErrorBoundary from './ErrorBoundary';
 import './PeopleSearch.css';
 
 type Messages = {
-  searchPlaceholder?: string;
-  searchButton?: string;
-  refreshButton?: string;
-  clearCacheButton?: string;
+  searchPlaceholder: string;
+  searchButton: string;
+  refreshButton: string;
+  clearCacheButton: string;
 };
 
 type PeopleSearchProps = {
-  messages?: Messages;
+  messages: Messages;
 };
 
-export default function PeopleSearch({
-  messages = {
-    searchPlaceholder: 'Search people...',
-    searchButton: 'Search',
-    refreshButton: 'Refresh',
-    clearCacheButton: 'Clear cache',
-  },
-}: PeopleSearchProps) {
+export default function PeopleSearch({ messages }: PeopleSearchProps) {
   const searchParams = useSearchParams();
   const reduxQuery = useSelector((state: any) => state.people?.searchQuery ?? '');
   const dispatch = useDispatch();
@@ -146,13 +139,13 @@ export default function PeopleSearch({
 
                 <div className="pagination">
                   <button onClick={handlePrev} disabled={page === 1}>
-                    Prev
+                    &lt;
                   </button>
                   <span>
                     Page {page} of {maxPage}
                   </span>
                   <button onClick={handleNext} disabled={page >= maxPage}>
-                    Next
+                    &gt;
                   </button>
                 </div>
               </>
