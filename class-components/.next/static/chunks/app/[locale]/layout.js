@@ -662,7 +662,7 @@ eval(__webpack_require__.ts("__webpack_require__.r(__webpack_exports__);\n/* har
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"Home":{"title":"React app","hide":"Hide","show":"Show","about":"About us"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"Home":{"title":"React app","hide":"Hide","show":"Show","about":"About us","searchPlaceholder":"Search people...","searchButton":"Search","refreshButton":"Refresh","clearCacheButton":"Clear cache"}}');
 
 /***/ }),
 
@@ -673,7 +673,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"Home":{"title":"React app","hide":"H
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"Home":{"title":"Реакт приложение","hide":"Скрыть","show":"Показать","about":"О нас"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"Home":{"title":"Реакт приложение","hide":"Скрыть","show":"Показать","about":"О нас","searchPlaceholder":"Поиск участников...","searchButton":"Поиск","refreshButton":"Обновить","clearCacheButton":"Очистить кэш"}}');
 
 /***/ })
 

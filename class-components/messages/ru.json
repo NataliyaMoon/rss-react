@@ -3,6 +3,10 @@
     "title": "Реакт приложение",
     "hide": "Скрыть",
     "show": "Показать",
-    "about": "О нас"
+    "about": "О нас",
+    "searchPlaceholder": "Поиск участников...",
+    "searchButton": "Поиск",
+    "refreshButton": "Обновить",
+    "clearCacheButton": "Очистить кэш"
   }
 }

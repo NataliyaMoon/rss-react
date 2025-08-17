@@ -35,6 +35,7 @@
 .people-search {
   padding: 1rem;
   font-family: sans-serif;
+  display: flex;
 }
 
 .search-bar {
@@ -69,7 +70,7 @@
 }
 
 .list-column {
-  flex: 1 1;
+  flex: 3 1;
 }
 
 .detail-column {

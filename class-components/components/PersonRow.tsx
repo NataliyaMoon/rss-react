@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter, useParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from 'store';
 import { toggleSelection } from './slices/peopleSlice';
@@ -16,30 +15,30 @@ type PersonRowProps = {
   index: number;
   page: number;
   query: string;
+  onSelect: (url: string) => void;
+  selectedPersonUrl: string | null;
 };
 
-export default function PersonRow({ person, index, page, query }: PersonRowProps) {
-  const router = useRouter();
-  const params = useParams();
-  const detailsId = params?.detailsId as string | undefined;
-  const locale = params?.locale as string; // если у тебя есть мультиязычность
-
+export default function PersonRow({
+  person,
+  index,
+  page,
+  query,
+  onSelect,
+  selectedPersonUrl,
+}: PersonRowProps) {
   const dispatch = useDispatch();
   const selected = useSelector((state: RootState) => state.people.selected);
 
   const id = person.url.split('/').filter(Boolean).pop() || '';
-  const isActive = id === detailsId;
+  const isActive = person.url === selectedPersonUrl;
   const isChecked = Boolean(selected[person.url]);
-
-  const handleSelect = () => {
-    const url = `/${locale}/people/${page}/${id}?search=${encodeURIComponent(query)}`;
-    router.push(url);
-  };
 
   return (
     <tr
       className={isActive ? 'active-row' : ''}
-      onClick={handleSelect}
+      onClick={() => onSelect(person.url)}
+      style={{ cursor: 'pointer' }}
     >
       <td onClick={(e) => e.stopPropagation()}>
         <input
