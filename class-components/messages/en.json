@@ -1,0 +1,12 @@
+{
+  "Home": {
+    "title": "React app",
+    "hide": "Hide",
+    "show": "Show",
+    "about": "About us",
+    "searchPlaceholder": "Search people...",
+    "searchButton": "Search",
+    "refreshButton": "Refresh",
+    "clearCacheButton": "Clear cache"
+  }
+}

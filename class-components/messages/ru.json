@@ -1,0 +1,12 @@
+{
+  "Home": {
+    "title": "Реакт приложение",
+    "hide": "Скрыть",
+    "show": "Показать",
+    "about": "О нас",
+    "searchPlaceholder": "Поиск участников...",
+    "searchButton": "Поиск",
+    "refreshButton": "Обновить",
+    "clearCacheButton": "Очистить кэш"
+  }
+}

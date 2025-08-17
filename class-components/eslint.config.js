@@ -6,13 +6,12 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import reactCompiler from 'eslint-plugin-react-compiler';
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
 import parser from '@typescript-eslint/parser';
-import vitest from 'eslint-plugin-vitest';
 
 export default [
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       sourceType: 'module',
       parser,
       globals: {
@@ -43,15 +42,6 @@ export default [
       react: {
         version: 'detect'
       }
-    }
-  },
-  {
-    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
-    plugins: {
-      vitest
-    },
-    languageOptions: {
-      globals: vitest.environments['vitest/globals'].globals
     }
   },
   prettierRecommended
