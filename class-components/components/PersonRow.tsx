@@ -5,39 +5,36 @@ import type { RootState } from 'store';
 import { toggleSelection } from './slices/peopleSlice';
 
 type Person = {
-  url: string;
   name: string;
   birth_year: string;
+  gender: string;
 };
 
 type PersonRowProps = {
   person: Person;
   index: number;
   page: number;
-  query: string;
-  onSelect: (url: string) => void;
-  selectedPersonUrl: string | null;
+  onSelect: (name: string) => void;
+  selectedPersonName: string | null;
 };
 
 export default function PersonRow({
   person,
   index,
   page,
-  query,
   onSelect,
-  selectedPersonUrl,
+  selectedPersonName,
 }: PersonRowProps) {
   const dispatch = useDispatch();
   const selected = useSelector((state: RootState) => state.people.selected);
 
-  const id = person.url.split('/').filter(Boolean).pop() || '';
-  const isActive = person.url === selectedPersonUrl;
-  const isChecked = Boolean(selected[person.url]);
+  const isActive = person.name === selectedPersonName;
+  const isChecked = Boolean(selected[person.name]);
 
   return (
     <tr
       className={isActive ? 'active-row' : ''}
-      onClick={() => onSelect(person.url)}
+      onClick={() => onSelect(person.name)}
       style={{ cursor: 'pointer' }}
     >
       <td onClick={(e) => e.stopPropagation()}>

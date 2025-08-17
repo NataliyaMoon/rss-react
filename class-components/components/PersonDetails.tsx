@@ -1,34 +1,27 @@
+
 'use client';
 
-import { useGetPersonByUrlQuery } from '../src/services/swapiApi';
-
-type Props = {
-  url: string;
+type Person = {
+  name: string;
+  birth_year: string;
+  gender: string;
 };
 
-export default function PersonDetails({ url }: Props) {
-  const { data: person, isLoading, isError, error } = useGetPersonByUrlQuery(url);
+type PersonDetailsProps = {
+  name: string;
+  people: Person[];
+};
 
-  if (isLoading) return <p>Loading details...</p>;
+export default function PersonDetails({ name, people }: PersonDetailsProps) {
+  const person = people.find((p) => p.name === name);
 
-  if (isError) {
-    return (
-      <p className="error">
-        Error: {error && 'status' in error ? error.status : 'Unknown error'}
-      </p>
-    );
-  }
-
-  if (!person) return null;
+  if (!person) return <p>Person not found</p>;
 
   return (
-    <div>
+    <div className="person-details">
       <h2>{person.name}</h2>
-      <p>Gender: {person.gender}</p>
       <p>Birth Year: {person.birth_year}</p>
-      <p>Height: {person.height} cm</p>
-      <p>Mass: {person.mass} kg</p>
-      <p>Eye color: {person.eye_color}</p>
+      <p>Gender: {person.gender}</p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import PeopleSearch from '../../../components/PeopleSearch';
+import PeopleSearch from '../../../components/PeopleSearchServer';
 
 export default function PeoplePage() {
   return <PeopleSearch />;

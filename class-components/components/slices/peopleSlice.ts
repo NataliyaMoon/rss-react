@@ -2,8 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 type Person = {
   name: string;
-  url: string;
-  [key: string]: unknown;
+  birth_year: string;
+  gender: string;
 };
 
 type PeopleState = {
@@ -22,7 +22,7 @@ const loadSelectedFromStorage = (): Record<string, Person> => {
 };
 
 const initialState: PeopleState = {
-  selected: {},
+  selected: loadSelectedFromStorage(),
   searchQuery: '',
 };
 
@@ -31,7 +31,7 @@ const peopleSlice = createSlice({
   initialState,
   reducers: {
     toggleSelection: (state, action: PayloadAction<Person>) => {
-      const id = action.payload.url;
+      const id = action.payload.name;
       if (state.selected[id]) {
         delete state.selected[id];
       } else {
