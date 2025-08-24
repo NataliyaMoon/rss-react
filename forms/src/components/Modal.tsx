@@ -57,13 +57,13 @@ onMouseDown={onBackdropClick}
 aria-hidden={!isOpen}
 >
 <div
-className="modal"
+className="form"
 role="dialog"
 aria-modal="true"
 aria-label={ariaLabel}
 data-modal
 >
-<button className="close" onClick={onClose} aria-label="Закрыть модальное окно">×</button>
+<button className="close" onClick={onClose} aria-label="C:ose modal">×</button>
 {children}
 </div>
 </div>,

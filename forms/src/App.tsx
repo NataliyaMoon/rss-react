@@ -3,7 +3,7 @@ import Home from './pages/Home'
 import Modal from './components/Modal'
 import RHFUserForm from './forms/RHFUserForm'
 import UncontrolledUserForm from './forms/UncontrolledUserForm'
-
+import './App.css'
 
 export default function App() {
   const [open, setOpen] = useState<null | 'rhf' | 'uncontrolled'>(null)

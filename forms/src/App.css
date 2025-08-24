@@ -40,3 +40,57 @@
 .read-the-docs {
   color: #888;
 }
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.form legend {
+  margin: 0 0 0.25rem 0;
+  padding: 0;
+}
+
+.form input,
+.form select,
+.form textarea {
+  margin: 0;
+  padding: 0.25em;
+  box-sizing: border-box;
+}
+
+.form input[type="checkbox"],
+.form input[type="radio"] {
+  margin: 0 0.5rem 0 0;
+  vertical-align: middle;
+}
+
+.form .error {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  color: #f00;
+}
+
+.form button {
+  margin-top: 0.5rem;
+}
