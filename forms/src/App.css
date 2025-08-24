@@ -94,3 +94,8 @@
 .form button {
   margin-top: 0.5rem;
 }
+
+.preview {
+  width: 100px;
+  height: 100px;
+}
