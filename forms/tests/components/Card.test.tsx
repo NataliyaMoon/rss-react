@@ -2,7 +2,7 @@ import React from "react"
 import { render, screen } from "@testing-library/react"
 import { describe, it, expect } from "vitest"
 import { Card } from "../../src/components/Card"
-import type { UserFormData } from "../../store/formSlice"
+import type { UserFormData } from "../../src/store/formSlice"
 
 describe("Card component", () => {
   const mockData: UserFormData = {

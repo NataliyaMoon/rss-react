@@ -1,4 +1,4 @@
-import type { UserFormData } from '../../store/formSlice'
+import type { UserFormData } from '../store/formSlice'
 
 export function Card({ data }: { data: UserFormData }) {
   return (

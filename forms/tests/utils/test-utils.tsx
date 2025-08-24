@@ -2,8 +2,8 @@ import React, { PropsWithChildren } from "react"
 import { render } from "@testing-library/react"
 import { Provider } from "react-redux"
 import { configureStore, EnhancedStore } from "@reduxjs/toolkit"
-import formReducer from "../../store/formSlice"
-import { RootState } from "../../store/store"
+import formReducer from "../../src/store/formSlice"
+import { RootState } from "../../src/store/store"
 
 interface RenderOptions {
   preloadedState?: Partial<RootState>

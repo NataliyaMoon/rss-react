@@ -5,8 +5,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useDispatch, useSelector } from 'react-redux'
 import { useState } from 'react'
 
-import { addFormData, type FormType, type UserFormData } from '../../store/formSlice'
-import { type RootState } from '../../store/store'
+import { addFormData, type FormType, type UserFormData } from '../store/formSlice'
+import { type RootState } from '../store/store'
 import { schema, type FormSchema } from '../utils/schema'
 import { fileToBase64 } from '../utils/fileToBase64'
 

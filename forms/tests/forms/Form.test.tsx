@@ -4,7 +4,7 @@ import RHFUserForm from "../../src/forms/RHFUserForm"
 import UncontrolledUserForm from "../../src/forms/UncontrolledUserForm"
 import { describe, it, vi } from "vitest"
 import { Provider } from "react-redux"
-import { store } from "../../store/store"
+import { store } from "../../src/store/store"
 
 describe("Form wrappers", () => {
   it("renders RHF form", () => {

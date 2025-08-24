@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import reducer, { addFormData } from "../../store/formSlice"
+import reducer, { addFormData } from "../../src/store/formSlice"
 
 describe("formSlice", () => {
   it("adds data for uncontrolled form", () => {

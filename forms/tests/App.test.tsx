@@ -1,7 +1,7 @@
 import React from "react"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { Provider } from "react-redux"
-import { store } from "../store/store"
+import { store } from "../src/store/store"
 import App from "../src/App"
 import { describe, it, expect, beforeEach } from "vitest"
 

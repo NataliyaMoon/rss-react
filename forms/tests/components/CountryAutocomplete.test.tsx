@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
 import { Provider } from "react-redux"
 import { configureStore } from "@reduxjs/toolkit"
-import formsReducer, { type FormState } from "../../store/formSlice"
+import formsReducer, { type FormState } from "../../src/store/formSlice"
 import CountryAutocomplete from "../../src/components/CountryAutocomplete"
 
 const preloadedState: { forms: FormState } = {
