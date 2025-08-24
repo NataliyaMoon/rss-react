@@ -20,8 +20,6 @@ describe("Card component", () => {
 
   it("renders all fields correctly", () => {
     render(<Card data={mockData} />)
-
-    // Берем весь <li> и проверяем его textContent
     const nameNode = screen.getByText("Name:").parentElement
     expect(nameNode?.textContent).toBe(`Name: ${mockData.name}`)
 

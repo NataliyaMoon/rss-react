@@ -16,7 +16,7 @@ export interface UserFormData {
 
 export type FormType = 'uncontrolled' | 'rhf'
 
-interface FormState {
+export interface FormState {
   uncontrolledForm: UserFormData | null
   rhfForm: UserFormData | null
   countries: string[]
