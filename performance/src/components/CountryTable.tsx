@@ -85,7 +85,6 @@ export const CountryTable: React.FC = () => {
 
   return (
     <div className="p-3 overflow-x-auto">
-      {/* Панель управления */}
       <div className="flex flex-wrap gap-3 mb-3 items-center">
         <input
           type="text"
@@ -126,11 +125,11 @@ export const CountryTable: React.FC = () => {
         </div>
       </div>
 
-      {/* Таблица */}
       <table className="border-collapse border w-full text-sm">
         <thead>
           <tr className="bg-gray-100">
             <th className="border p-2 text-left">Country</th>
+            <th className="border p-2 text-left">ISO</th>
             <th className="border p-2 text-left">
               Population{' '}
               <select
@@ -151,6 +150,7 @@ export const CountryTable: React.FC = () => {
           {rows.map(({ node, row }) => (
             <tr key={node.iso_code}>
               <td className="border p-2">{node.name}</td>
+              <td className="border p-2">{node.iso_code ?? 'N/A'}</td>
               <td
                 className={clsx(
                   'border p-2 transition-colors',
