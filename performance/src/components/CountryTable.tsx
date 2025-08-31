@@ -16,6 +16,13 @@ export const CountryTable: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [highlightedYear, setHighlightedYear] = useState<number | null>(null);
 
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([
+    'population',
+    'co2',
+    'co2_per_capita',
+  ]);
+
   const allYears = useMemo(() => {
     const years = new Set<number>();
     for (const key of filteredKeys) {
@@ -83,6 +90,12 @@ export const CountryTable: React.FC = () => {
     setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
   }
 
+  function toggleColumn(col: string) {
+    setSelectedColumns(prev =>
+      prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]
+    );
+  }
+
   return (
     <div className="p-3 overflow-x-auto">
       <div className="flex flex-wrap gap-3 mb-3 items-center">
@@ -123,6 +136,13 @@ export const CountryTable: React.FC = () => {
             )}
           </button>
         </div>
+
+        <button
+          onClick={() => setModalOpen(true)}
+          className="border px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+        >
+          Columns
+        </button>
       </div>
 
       <table className="border-collapse border w-full text-sm">
@@ -130,55 +150,109 @@ export const CountryTable: React.FC = () => {
           <tr className="bg-gray-100">
             <th className="border p-2 text-left">Country</th>
             <th className="border p-2 text-left">ISO</th>
-            <th className="border p-2 text-left">
-              Population{' '}
-              <select
-                value={year}
-                onChange={handleYearChange}
-                className="border rounded px-1 py-0.5 ml-2"
-              >
-                {allYears.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </th>
-            <th className="border p-2 text-left">CO₂</th>
-            <th className="border p-2 text-left">CO₂ per capita</th>
+            {selectedColumns.includes('population') && (
+              <th className="border p-2 text-left">
+                Population{' '}
+                <select
+                  value={year}
+                  onChange={handleYearChange}
+                  className="border rounded px-1 py-0.5 ml-2"
+                >
+                  {allYears.map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </th>
+            )}
+            {selectedColumns.includes('co2') && (
+              <th className="border p-2 text-left">CO₂</th>
+            )}
+            {selectedColumns.includes('co2_per_capita') && (
+              <th className="border p-2 text-left">CO₂ per capita</th>
+            )}
           </tr>
         </thead>
         <tbody>
           {rows.map(({ node, row }) => (
             <tr key={node.iso_code}>
               <td className="border p-2">{node.name}</td>
-              <td className="border p-2">{node.iso_code ?? 'N/A'}</td>
-              <td
-                className={clsx(
-                  'border p-2 transition-colors',
-                  highlightedYear && 'bg-yellow-100'
-                )}
-              >
-                {formatNumber(row?.population)}
-              </td>
-              <td
-                className={clsx(
-                  'border p-2 transition-colors',
-                  highlightedYear && 'bg-yellow-100'
-                )}
-              >
-                {formatNumber(row?.co2)}
-              </td>
-              <td
-                className={clsx(
-                  'border p-2 transition-colors',
-                  highlightedYear && 'bg-yellow-100'
-                )}
-              >
-                {formatNumber(row?.co2_per_capita)}
-              </td>
+              <td className="border p-2">{node.iso_code || 'N/A'}</td>
+              {selectedColumns.includes('population') && (
+                <td
+                  className={clsx(
+                    'border p-2 transition-colors',
+                    highlightedYear && 'bg-yellow-100'
+                  )}
+                >
+                  {formatNumber(row?.population)}
+                </td>
+              )}
+              {selectedColumns.includes('co2') && (
+                <td
+                  className={clsx(
+                    'border p-2 transition-colors',
+                    highlightedYear && 'bg-yellow-100'
+                  )}
+                >
+                  {formatNumber(row?.co2)}
+                </td>
+              )}
+              {selectedColumns.includes('co2_per_capita') && (
+                <td
+                  className={clsx(
+                    'border p-2 transition-colors',
+                    highlightedYear && 'bg-yellow-100'
+                  )}
+                >
+                  {formatNumber(row?.co2_per_capita)}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
       </table>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-5 shadow-lg w-80">
+            <h2 className="text-lg font-semibold mb-3">Select columns</h2>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedColumns.includes('population')}
+                  onChange={() => toggleColumn('population')}
+                />
+                Population
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedColumns.includes('co2')}
+                  onChange={() => toggleColumn('co2')}
+                />
+                CO₂
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedColumns.includes('co2_per_capita')}
+                  onChange={() => toggleColumn('co2_per_capita')}
+                />
+                CO₂ per capita
+              </label>
+            </div>
+            <div className="flex justify-end mt-4 gap-2">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
