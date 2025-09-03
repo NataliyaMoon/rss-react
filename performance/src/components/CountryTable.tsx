@@ -3,13 +3,14 @@ import clsx from 'clsx';
 import { useData } from '../context/DataContext';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import '../App.css';
+import type { ColumnKey, YearRecord } from '../types';
 
 function formatNumber(v: number | null | undefined) {
   if (v == null) return 'N/A';
   return v.toLocaleString();
 }
 
-const EXTRA_FIELDS = [
+const EXTRA_FIELDS: { key: ColumnKey; label: string }[] = [
   { key: 'methane', label: 'Methane' },
   { key: 'oil_co2', label: 'Oil CO₂' },
   { key: 'temperature_change_from_co2', label: 'Temperature change from CO₂' },
@@ -22,7 +23,7 @@ export const CountryTable: React.FC = () => {
   const [sortKey, setSortKey] = useState<'name' | 'population'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [highlightedYear, setHighlightedYear] = useState<number | null>(null);
-  const [extraColumns, setExtraColumns] = useState<string[]>([]);
+  const [extraColumns, setExtraColumns] = useState<ColumnKey[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   const allYears = useMemo(() => {
@@ -92,7 +93,7 @@ export const CountryTable: React.FC = () => {
     setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
   }
 
-  function toggleExtraColumn(key: string) {
+  function toggleExtraColumn(key: ColumnKey) {
     setExtraColumns(prev =>
       prev.includes(key) ? prev.filter(c => c !== key) : [...prev, key]
     );
@@ -239,7 +240,7 @@ export const CountryTable: React.FC = () => {
                     highlightedYear && 'bg-yellow-100'
                   )}
                 >
-                  {formatNumber((row as any)?.[col])}
+                  {formatNumber(row?.[col] as number | null | undefined)}
                 </td>
               ))}
             </tr>

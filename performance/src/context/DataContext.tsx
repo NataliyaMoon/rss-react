@@ -70,7 +70,7 @@ export const DataProvider: React.FC<{ index: CO2Index; children: React.ReactNode
     const series = node.data;
     if (!series || series.length === 0) return null;
     const rec = series.find((x) => x.year === year) ?? last(series);
-    const v = rec ? (rec as any)[field] : undefined;
+    const v = rec ? rec[field] : undefined;
     return typeof v === 'number' && Number.isFinite(v) ? v : null;
   }, [index, year]);
 
