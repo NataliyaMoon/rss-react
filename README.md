@@ -3,11 +3,11 @@
 I measured the app's performance using **React DevTools (Profiler)**.
 
 ### Table Rendering (Quick Scenario)
-![Table Rendering (27ms)](screenshots/profilier1.png)
+![Table Rendering (27ms)](performance/screenshots/profilier1.png)
 The `CountryTable` component took **≈27ms** to render.
 
 ### Table Rendering (Full Load)
-![Table Rendering (104ms)](screenshots/profilier.png)
+![Table Rendering (104ms)](performance/screenshots/profilier.png)
 With a different data sample, `CountryTable` took **≈105ms** to render.
 
 ### Brief Description
